@@ -33,6 +33,8 @@ import org.redllamaaa.camera.items.AlbumItem;
 import org.redllamaaa.camera.items.CameraItem;
 import org.redllamaaa.camera.items.ImageFrameItem;
 import org.redllamaaa.camera.items.ImageItem;
+import org.redllamaaa.camera.net.ConfigNetworking;
+import org.redllamaaa.camera.net.PacketManager;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -129,13 +131,12 @@ public class CameraMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // Replaces FMLCommonSetupEvent
         PACKET_MANAGER = new PacketManager();
-
         ModSounds.init();
 
         SERVER_CONFIG.load();
-        
+        ConfigNetworking.register();
+
         registerPayloads();
     }
 

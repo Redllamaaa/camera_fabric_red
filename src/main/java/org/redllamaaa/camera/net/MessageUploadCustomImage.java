@@ -3,7 +3,7 @@ package org.redllamaaa.camera.net;
 import org.redllamaaa.camera.ClientImageUploadManager;
 import org.redllamaaa.camera.ImageProcessor;
 import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.corelib.net.Message;
+import org.redllamaaa.util.net.Message;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
