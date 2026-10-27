@@ -29,6 +29,10 @@ repositories {
         name = "Xander"
         url = "https://maven.isxander.dev/releases"
     }
+    maven {
+        name = "Jared's Maven"
+        url = "https://maven.blamejared.com"
+    }
 }
 
 dependencies {
@@ -36,6 +40,11 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     implementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+
+    // Minecraft 26.3 uses unobfuscated Loom, which uses the standard Gradle
+    // dependency configurations instead of Loom's remapped mod* variants.
+    compileOnly("mezz.jei:jei-26.3-fabric-api:31.17.0.94")
+    runtimeOnly("mezz.jei:jei-26.3-fabric:31.17.0.94")
 }
 
 processResources {

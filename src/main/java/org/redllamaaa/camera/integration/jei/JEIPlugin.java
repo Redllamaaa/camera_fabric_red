@@ -1,12 +1,18 @@
+
 package org.redllamaaa.camera.integration.jei;
 
-import org.redllamaaa.camera.ImageCloningRecipe;
 import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.camera.gui.*;
+import org.redllamaaa.camera.ImageCloningRecipe;
+import org.redllamaaa.camera.gui.AlbumScreen;
+import org.redllamaaa.camera.gui.CameraScreen;
+import org.redllamaaa.camera.gui.ImageScreen;
+import org.redllamaaa.camera.gui.LecternAlbumScreen;
+import org.redllamaaa.camera.gui.ResizeFrameScreen;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.IExtendableCraftingRecipeCategory;
-import mezz.jei.api.registration.*;
+import mezz.jei.api.registration.IGuiHandlerRegistration;
+import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
 import net.minecraft.resources.Identifier;
 
 @JeiPlugin
@@ -27,9 +33,15 @@ public class JEIPlugin implements IModPlugin {
     }
 
     @Override
-    public void registerVanillaCategoryExtensions(IVanillaCategoryExtensionRegistration registration) {
-        IExtendableCraftingRecipeCategory craftingCategory = registration.getCraftingCategory();
-        craftingCategory.addExtension(ImageCloningRecipe.class, new ImageCloneExtension<>());
-    }
+    public void registerVanillaCategoryExtensions(
+            IVanillaCategoryExtensionRegistration registration
+    ) {
+        IExtendableCraftingRecipeCategory craftingCategory =
+                registration.getCraftingCategory();
 
+        craftingCategory.addExtension(
+                ImageCloningRecipe.class,
+                new ImageCloneExtension<>()
+        );
+    }
 }

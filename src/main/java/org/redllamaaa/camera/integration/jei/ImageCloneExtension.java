@@ -1,3 +1,4 @@
+
 package org.redllamaaa.camera.integration.jei;
 
 import org.redllamaaa.camera.ImageCloningRecipe;
@@ -23,25 +24,46 @@ public class ImageCloneExtension<T extends ImageCloningRecipe> implements ICraft
     @Override
     public List<SlotDisplay> getIngredients(RecipeHolder<T> recipeHolder) {
         List<SlotDisplay> result = new ArrayList<>();
-        ImageData.dummy().addToImage(new ItemStack(CameraMod.IMAGE.get()));
-        result.add(new SlotDisplay.ItemStackSlotDisplay(new ItemStackTemplate(CameraMod.IMAGE.get())));
 
-        //TODO Add paper
-        //result.add(new SlotDisplay.TagSlotDisplay(recipeHolder.value().getPaper()));
+        ItemStack image = new ItemStack(CameraMod.IMAGE);
+        ImageData.dummy().addToImage(image);
+        result.add(new SlotDisplay.ItemStackSlotDisplay(new ItemStackTemplate(image)));
 
         return result;
     }
 
     @Override
-    public void setRecipe(RecipeHolder<T> recipeHolder, IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper, IFocusGroup focuses) {
-        ItemStack image = new ItemStack(CameraMod.IMAGE.get());
+    public void setRecipe(
+            RecipeHolder<T> recipeHolder,
+            IRecipeLayoutBuilder builder,
+            ICraftingGridHelper craftingGridHelper,
+            IFocusGroup focuses
+    ) {
+        ItemStack image = new ItemStack(CameraMod.IMAGE);
         ImageData.dummy().addToImage(image);
 
-        List<ItemStack> paper = recipeHolder.value().getPaper().getValues().stream().map(Holder::value).map(ItemStack::new).toList();
+        List<ItemStack> paper = recipeHolder.value()
+                .getPaper()
+                .getValues()
+                .stream()
+                .map(Holder::value)
+                .map(ItemStack::new)
+                .toList();
 
         ItemStack out = image.copy();
 
-        craftingGridHelper.createAndSetInputs(builder, VanillaTypes.ITEM_STACK, Arrays.asList(List.of(image), paper), 0, 0);
-        craftingGridHelper.createAndSetOutputs(builder, VanillaTypes.ITEM_STACK, List.of(out));
+        craftingGridHelper.createAndSetInputs(
+                builder,
+                VanillaTypes.ITEM_STACK,
+                Arrays.asList(List.of(image), paper),
+                0,
+                0
+        );
+
+        craftingGridHelper.createAndSetOutputs(
+                builder,
+                VanillaTypes.ITEM_STACK,
+                List.of(out)
+        );
     }
 }
