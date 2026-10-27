@@ -6,16 +6,15 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.fabricmc.loader.api.FabricLoader;
 import org.redllamaaa.util.config.ConfigBase;
 import org.redllamaaa.util.config.ConfigValue;
-import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class ServerConfig extends ConfigBase {
-
+public final class ServerConfig extends ConfigBase {
     private static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .create();
@@ -34,7 +33,8 @@ public class ServerConfig extends ConfigBase {
             new ConfigValue<>(200_000, value -> value >= 50_000 && value <= 1_000_000);
 
     public final ConfigValue<Double> imageCompression =
-            new ConfigValue<>(0.5D, value -> value >= 0.1D && value <= 1.0D);
+            new ConfigValue<>(0.5D, value ->
+                    Double.isFinite(value) && value >= 0.1D && value <= 1.0D);
 
     public final ConfigValue<Boolean> allowImageUpload =
             new ConfigValue<>(true);
@@ -48,7 +48,7 @@ public class ServerConfig extends ConfigBase {
     public final ConfigValue<Integer> advancedDataMaxEntities =
             new ConfigValue<>(16, value -> value >= 1 && value <= 128);
 
-    public void load() {
+    public synchronized void load() {
         if (!Files.exists(configPath)) {
             save();
             onLoad();
@@ -56,7 +56,13 @@ public class ServerConfig extends ConfigBase {
         }
 
         try (var reader = Files.newBufferedReader(configPath)) {
-            JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+            JsonElement root = JsonParser.parseReader(reader);
+
+            if (!root.isJsonObject()) {
+                throw new IllegalStateException("Config root must be a JSON object");
+            }
+
+            JsonObject json = root.getAsJsonObject();
 
             read(json, "camera.cooldown", imageCooldown);
             read(json, "camera.consumed_item.amount", cameraConsumeItemAmount);
@@ -69,12 +75,13 @@ public class ServerConfig extends ConfigBase {
 
             save();
             onLoad();
-        } catch (IOException | IllegalStateException e) {
-            throw new IllegalStateException("Failed to load server config", e);
+        } catch (IOException | RuntimeException e) {
+            throw new IllegalStateException(
+                    "Failed to load config from " + configPath, e);
         }
     }
 
-    public void save() {
+    public synchronized void save() {
         JsonObject json = new JsonObject();
 
         write(json, "camera.cooldown", imageCooldown);
@@ -90,7 +97,8 @@ public class ServerConfig extends ConfigBase {
             Files.createDirectories(configPath.getParent());
             Files.writeString(configPath, GSON.toJson(json));
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to save server config", e);
+            throw new IllegalStateException(
+                    "Failed to save config to " + configPath, e);
         }
     }
 
@@ -98,6 +106,7 @@ public class ServerConfig extends ConfigBase {
         JsonElement element = getElement(json, path);
 
         if (element == null || element.isJsonNull()) {
+            value.reset();
             return;
         }
 
@@ -106,8 +115,10 @@ public class ServerConfig extends ConfigBase {
 
             if (value.isValid(parsed)) {
                 value.set(parsed);
+            } else {
+                value.reset();
             }
-        } catch (RuntimeException ignored) {
+        } catch (RuntimeException e) {
             value.reset();
         }
     }

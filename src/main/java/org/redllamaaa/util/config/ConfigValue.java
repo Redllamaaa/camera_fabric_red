@@ -1,31 +1,36 @@
 
 package org.redllamaaa.util.config;
 
+import java.util.Objects;
 import java.util.function.Predicate;
 
-public class ConfigValue<T> {
-
+public final class ConfigValue<T> {
     private final T defaultValue;
     private final Predicate<T> validator;
     private T value;
 
     public ConfigValue(T defaultValue) {
-        this(defaultValue, ignored -> true);
+        this(defaultValue, Objects::nonNull);
     }
 
     public ConfigValue(T defaultValue, Predicate<T> validator) {
-        this.defaultValue = defaultValue;
-        this.validator = validator;
+        this.defaultValue = Objects.requireNonNull(defaultValue);
+        this.validator = Objects.requireNonNull(validator);
+
+        if (!isValid(defaultValue)) {
+            throw new IllegalArgumentException("Default config value is invalid");
+        }
+
         this.value = defaultValue;
     }
 
-    public T get() {
+    public synchronized T get() {
         return value;
     }
 
-    public void set(T value) {
-        if (!validator.test(value)) {
-            throw new IllegalArgumentException("Invalid configuration value: " + value);
+    public synchronized void set(T value) {
+        if (!isValid(value)) {
+            throw new IllegalArgumentException("Invalid config value: " + value);
         }
 
         this.value = value;
@@ -35,11 +40,11 @@ public class ConfigValue<T> {
         return defaultValue;
     }
 
-    public void reset() {
+    public synchronized void reset() {
         value = defaultValue;
     }
 
     public boolean isValid(T value) {
-        return validator.test(value);
+        return value != null && validator.test(value);
     }
 }
