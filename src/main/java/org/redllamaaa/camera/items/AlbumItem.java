@@ -57,7 +57,7 @@ public class AlbumItem extends Item {
 
     public static void openAlbum(Player player, ItemStack album) {
         if (player.level().isClientSide()) {
-            List<UUID> images = CameraMod.ALBUM.get().getImages(album);
+            List<UUID> images = CameraMod.ALBUM.getImages(album);
             if (!images.isEmpty()) {
                 CameraClientMod.openAlbumScreen(images);
             }

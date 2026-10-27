@@ -30,9 +30,9 @@ public final class CameraConfigScreen {
         DRAFT.advancedDataMaxEntities = config.advancedDataMaxEntities();
 
         Minecraft minecraft = Minecraft.getInstance();
-        Screen parent = minecraft.screen;
+        Screen parent = minecraft.gui.screen();
 
-        minecraft.setScreen(createScreen(parent));
+        minecraft.gui.setScreen(createScreen(parent));
     }
 
     private static Screen createScreen(Screen parent) {

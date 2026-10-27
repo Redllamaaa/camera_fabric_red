@@ -14,7 +14,7 @@ import org.redllamaaa.camera.gui.AlbumContainer;
 public record MessageTakeBook() implements CustomPacketPayload {
 
     public static final Type<MessageTakeBook> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "take_book")
+            CameraMod.id("take_book")
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MessageTakeBook> CODEC =

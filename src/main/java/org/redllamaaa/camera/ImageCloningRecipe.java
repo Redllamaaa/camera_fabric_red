@@ -79,7 +79,7 @@ public class ImageCloningRecipe extends CustomRecipe {
 
     @Override
     public RecipeSerializer<? extends CustomRecipe> getSerializer() {
-        return CameraMod.IMAGE_CLONING_SERIALIZER.get();
+        return CameraMod.IMAGE_CLONING_SERIALIZER;
     }
 
     protected CraftingResult craft(RecipeInput inv) {

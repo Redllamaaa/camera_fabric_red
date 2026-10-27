@@ -9,7 +9,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class AlbumInventoryScreen extends ScreenBase<AlbumInventoryContainer> {
 
-    public static final Identifier DEFAULT_IMAGE = Identifier.fromNamespaceAndPath(CameraMod.MODID, "textures/gui/album.png");
+    public static final Identifier DEFAULT_IMAGE = CameraMod.id("textures/gui/album.png");
 
     private Inventory playerInventory;
 

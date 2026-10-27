@@ -1,8 +1,8 @@
 package org.redllamaaa.camera;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import org.redllamaaa.corelib.CommonUtils;
-import org.redllamaaa.corelib.client.RenderUtils;
+import org.redllamaaa.util.CommonUtils;
+import org.redllamaaa.util.client.RenderUtils;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
 
@@ -190,7 +190,7 @@ public class ImageTools {
                 return;
             }
             CameraMod.CLIENT_CONFIG.lastImagePath.set(image.getParent());
-            CameraMod.CLIENT_CONFIG.lastImagePath.save();
+            CameraMod.CLIENT_CONFIG.save();
             onResult.accept(image);
         });
     }

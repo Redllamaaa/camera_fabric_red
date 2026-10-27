@@ -1,6 +1,5 @@
 package org.redllamaaa.camera.gui;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import org.redllamaaa.camera.CameraClientMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -89,8 +88,8 @@ public class AlbumScreen extends AbstractContainerScreen<AlbumContainer> {
     @Override
     public void containerTick() {
         super.containerTick();
-        boolean isNextDown = InputConstants.isKeyDown(CameraClientMod.KEY_NEXT.getKey().getValue());
-        boolean isPreviousDown = InputConstants.isKeyDown(CameraClientMod.KEY_PREVIOUS.getKey().getValue());
+        boolean isNextDown = CameraClientMod.KEY_NEXT.isDown();
+        boolean isPreviousDown = CameraClientMod.KEY_PREVIOUS.isDown();
         if (wasNextDown != (wasNextDown = isNextDown) && !isNextDown) {
             next();
         } else if (wasPreviousDown != (wasPreviousDown = isPreviousDown) && !isPreviousDown) {

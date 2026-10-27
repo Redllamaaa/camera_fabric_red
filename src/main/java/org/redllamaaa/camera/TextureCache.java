@@ -1,11 +1,11 @@
 package org.redllamaaa.camera;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.redllamaaa.camera.net.MessageRequestImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
@@ -32,7 +32,7 @@ public class TextureCache {
             awaitingImages.remove(uuid);
         }
 
-        Identifier resourceLocation = Identifier.fromNamespaceAndPath(CameraMod.MODID, "texures/camera/" + uuid.toString());
+        Identifier resourceLocation = CameraMod.id("texures/camera/" + uuid.toString());
         CameraTextureObject cameraTextureObject = new CameraTextureObject(resourceLocation::toString, ImageTools.toNativeImage(image));
         clientImageCache.put(uuid, cameraTextureObject);
         clientResourceCache.put(uuid, resourceLocation);
@@ -56,7 +56,7 @@ public class TextureCache {
                 }
             }
             awaitingImages.put(uuid, System.currentTimeMillis());
-            ClientPacketDistributor.sendToServer(new MessageRequestImage(uuid));
+            ClientPlayNetworking.send(new MessageRequestImage(uuid));
 
             return true;
         }

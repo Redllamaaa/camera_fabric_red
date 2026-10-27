@@ -18,7 +18,7 @@ import java.util.UUID;
 public record MessageRequestUploadCustomImage(UUID uuid) implements CustomPacketPayload {
 
     public static final Type<MessageRequestUploadCustomImage> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "request_upload")
+            CameraMod.id("request_upload")
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MessageRequestUploadCustomImage> CODEC =
@@ -39,16 +39,17 @@ public record MessageRequestUploadCustomImage(UUID uuid) implements CustomPacket
         ServerPlayNetworking.registerGlobalReceiver(TYPE, (payload, context) -> {
             ServerPlayer sender = context.player();
 
-            if (CameraMod.PACKET_MANAGER.canTakeImage(sender.getUUID())) {
+            if (CameraMod.PACKET_MANAGER.isImageOnCooldown(sender.getUUID())) {
+                sender.sendOverlayMessage(Component.translatable("message.image_cooldown"));
+            } else {
                 if (CameraItem.consumePaper(sender)) {
+                    CameraMod.PACKET_MANAGER.recordImageTaken(sender.getUUID());
                     context.responseSender().sendPacket(
                             new MessageUploadCustomImage(payload.uuid())
                     );
                 } else {
                     sender.sendOverlayMessage(Component.translatable("message.no_consumable"));
                 }
-            } else {
-                sender.sendOverlayMessage(Component.translatable("message.image_cooldown"));
             }
         });
     }

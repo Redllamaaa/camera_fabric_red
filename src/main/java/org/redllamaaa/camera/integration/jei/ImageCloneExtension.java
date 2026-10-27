@@ -27,7 +27,7 @@ public class ImageCloneExtension<T extends ImageCloningRecipe> implements ICraft
 
         ItemStack image = new ItemStack(CameraMod.IMAGE);
         ImageData.dummy().addToImage(image);
-        result.add(new SlotDisplay.ItemStackSlotDisplay(new ItemStackTemplate(image)));
+        result.add(new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromStack(image)));
 
         return result;
     }
@@ -44,8 +44,7 @@ public class ImageCloneExtension<T extends ImageCloningRecipe> implements ICraft
 
         List<ItemStack> paper = recipeHolder.value()
                 .getPaper()
-                .getValues()
-                .stream()
+                .items()
                 .map(Holder::value)
                 .map(ItemStack::new)
                 .toList();

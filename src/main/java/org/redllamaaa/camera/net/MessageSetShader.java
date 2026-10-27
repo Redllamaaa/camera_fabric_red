@@ -16,7 +16,7 @@ import org.redllamaaa.camera.CameraMod;
 public record MessageSetShader(String shader) implements CustomPacketPayload {
 
     public static final Type<MessageSetShader> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "set_shader")
+            CameraMod.id("set_shader")
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MessageSetShader> CODEC =

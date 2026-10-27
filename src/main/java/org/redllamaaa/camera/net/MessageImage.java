@@ -3,7 +3,7 @@ package org.redllamaaa.camera.net;
 
 import io.netty.handler.codec.DecoderException;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -22,7 +22,7 @@ public record MessageImage(UUID uuid, byte[] image) implements CustomPacketPaylo
     private static final int MAX_IMAGE_SIZE = 1_000_000;
 
     public static final Type<MessageImage> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "image")
+            CameraMod.id("image")
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MessageImage> CODEC =
@@ -63,7 +63,7 @@ public record MessageImage(UUID uuid, byte[] image) implements CustomPacketPaylo
             try {
                 BufferedImage img = ImageTools.fromBytes(payload.image());
 
-                Minecraft.getInstance().submitAsync(
+                Minecraft.getInstance().execute(
                         () -> TextureCache.instance().addImage(payload.uuid(), img)
                 );
             } catch (IOException e) {

@@ -18,7 +18,7 @@ public record MessagePartialImage(UUID imgUUID, int offset, int length, byte[] b
     private static final int MAX_CHUNK_SIZE = 1_000_000;
 
     public static final Type<MessagePartialImage> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "partial_image")
+            CameraMod.id("partial_image")
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MessagePartialImage> CODEC =
@@ -40,7 +40,12 @@ public record MessagePartialImage(UUID imgUUID, int offset, int length, byte[] b
             );
 
     public MessagePartialImage {
-        if (offset < 0 || length < 0 || length != bytes.length || bytes.length > MAX_CHUNK_SIZE) {
+        if (offset < 0
+                || length <= 0
+                || offset > length
+                || bytes.length == 0
+                || bytes.length > MAX_CHUNK_SIZE
+                || bytes.length > length - offset) {
             throw new IllegalArgumentException("Invalid partial image chunk");
         }
     }

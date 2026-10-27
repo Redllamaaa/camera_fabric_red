@@ -29,7 +29,7 @@ public class ImageFrameItem extends Item {
         }
 
         Level world = context.getLevel();
-        ImageEntity image = CameraMod.IMAGE_ENTITY_TYPE.get().create(world, EntitySpawnReason.COMMAND);
+        ImageEntity image = CameraMod.IMAGE_ENTITY_TYPE.create(world, EntitySpawnReason.COMMAND);
         if (image == null) {
             return InteractionResult.FAIL;
         }

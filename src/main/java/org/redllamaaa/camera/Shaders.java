@@ -6,13 +6,13 @@ import java.util.*;
 
 public class Shaders {
 
-    public static Identifier BLACK_AND_WHITE = Identifier.fromNamespaceAndPath(CameraMod.MODID, "black_and_white");
-    public static Identifier SEPIA = Identifier.fromNamespaceAndPath(CameraMod.MODID, "sepia");
-    public static Identifier DESATURATED = Identifier.fromNamespaceAndPath(CameraMod.MODID, "desaturated");
-    public static Identifier OVEREXPOSED = Identifier.fromNamespaceAndPath(CameraMod.MODID, "overexposed");
-    public static Identifier OVERSATURATED = Identifier.fromNamespaceAndPath(CameraMod.MODID, "oversaturated");
-    public static Identifier BLURRY = Identifier.fromNamespaceAndPath(CameraMod.MODID, "blurry");
-    public static Identifier INVERTED = Identifier.fromNamespaceAndPath(CameraMod.MODID, "inverted");
+    public static Identifier BLACK_AND_WHITE = CameraMod.id("black_and_white");
+    public static Identifier SEPIA = CameraMod.id("sepia");
+    public static Identifier DESATURATED = CameraMod.id("desaturated");
+    public static Identifier OVEREXPOSED = CameraMod.id("overexposed");
+    public static Identifier OVERSATURATED = CameraMod.id("oversaturated");
+    public static Identifier BLURRY = CameraMod.id("blurry");
+    public static Identifier INVERTED = CameraMod.id("inverted");
 
     private static Map<String, Identifier> shaders;
     public static final List<String> SHADER_LIST;

@@ -8,12 +8,16 @@ import org.redllamaaa.camera.CameraMod;
 
 public class ModSounds {
 
+    public static void init() {
+        // Calling this method triggers class initialization and registers the sound event.
+    }
+
     // https://www.soundjay.com/mechanical/sounds/camera-shutter-click-01.mp3
     public static final SoundEvent TAKE_IMAGE = Registry.register(
             BuiltInRegistries.SOUND_EVENT,
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "take_image"),
+            CameraMod.id("take_image"),
             SoundEvent.createVariableRangeEvent(
-                    Identifier.fromNamespaceAndPath(CameraMod.MODID, "take_image")
+                    CameraMod.id("take_image")
             )
     );
 

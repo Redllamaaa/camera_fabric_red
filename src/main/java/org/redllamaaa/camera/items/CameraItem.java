@@ -11,12 +11,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Unit;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ public class CameraItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(
+    public InteractionResult use(
             Level level,
             Player player,
             InteractionHand hand
@@ -44,17 +44,20 @@ public class CameraItem extends Item {
                 );
             }
 
-            return InteractionResultHolder.success(stack);
+            return InteractionResult.SUCCESS;
         }
 
         if (!(player instanceof ServerPlayer serverPlayer)) {
-            return InteractionResultHolder.success(stack);
+            return InteractionResult.SUCCESS;
         }
 
         if (!isActive(stack)) {
             setActive(stack, true);
-        } else if (CameraMod.PACKET_MANAGER.canTakeImage(player.getUUID())) {
+        } else if (CameraMod.PACKET_MANAGER.isImageOnCooldown(player.getUUID())) {
+            player.sendOverlayMessage(Component.translatable("message.image_cooldown"));
+        } else {
             if (consumePaper(player)) {
+                CameraMod.PACKET_MANAGER.recordImageTaken(player.getUUID());
                 level.playSound(
                         null,
                         player.blockPosition(),
@@ -71,19 +74,11 @@ public class CameraItem extends Item {
 
                 setActive(stack, false);
             } else {
-                player.displayClientMessage(
-                        Component.translatable("message.no_consumable"),
-                        true
-                );
+                player.sendOverlayMessage(Component.translatable("message.no_consumable"));
             }
-        } else {
-            player.displayClientMessage(
-                    Component.translatable("message.image_cooldown"),
-                    true
-            );
         }
 
-        return InteractionResultHolder.success(stack);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -92,8 +87,8 @@ public class CameraItem extends Item {
     }
 
     @Override
-    public UseAnim getUseAnimation(ItemStack stack) {
-        return isActive(stack) ? UseAnim.BOW : UseAnim.NONE;
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
+        return isActive(stack) ? ItemUseAnimation.BOW : ItemUseAnimation.NONE;
     }
 
     public static boolean consumePaper(Player player) {
@@ -101,7 +96,7 @@ public class CameraItem extends Item {
             return true;
         }
 
-        int amountNeeded = CameraMod.SERVER_CONFIG.cameraConsumeItemAmount;
+        int amountNeeded = CameraMod.SERVER_CONFIG.cameraConsumeItemAmount.get();
         List<ItemStack> consumeStacks = findPaper(player);
 
         int count = 0;

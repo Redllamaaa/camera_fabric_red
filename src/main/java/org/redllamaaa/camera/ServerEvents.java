@@ -2,7 +2,7 @@
 package org.redllamaaa.camera;
 
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
-import net.fabricmc.fabric.api.entity.player.PlayerBlockBreakEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 public class ServerEvents {
 
     public static void register() {
-        ServerTickEvents.END_WORLD_TICK.register(world -> {
+        ServerTickEvents.END_LEVEL_TICK.register(world -> {
             for (Player player : world.players()) {
                 if (player.getMainHandItem().is(CameraMod.CAMERA)
                         || player.getOffhandItem().is(CameraMod.CAMERA)) {
@@ -73,12 +73,11 @@ public class ServerEvents {
             return true;
         });
 
-        net.fabricmc.fabric.api.event.player.PlayerDropItemCallback.EVENT.register(
-                (player, item) -> {
-                    disableCamera(item.getItem());
-                    return item;
-                }
-        );
+        ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+            if (entity instanceof ItemEntity itemEntity) {
+                disableCamera(itemEntity.getItem());
+            }
+        });
     }
 
     private static void disableCamera(ItemStack stack) {

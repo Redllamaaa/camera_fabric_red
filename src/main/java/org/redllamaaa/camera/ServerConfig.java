@@ -102,6 +102,7 @@ public final class ServerConfig extends ConfigBase {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private <T> void read(JsonObject json, String path, ConfigValue<T> value) {
         JsonElement element = getElement(json, path);
 
@@ -111,7 +112,8 @@ public final class ServerConfig extends ConfigBase {
         }
 
         try {
-            T parsed = GSON.fromJson(element, value.getDefault().getClass());
+            Class<T> valueClass = (Class<T>) value.getDefault().getClass();
+            T parsed = GSON.fromJson(element, valueClass);
 
             if (value.isValid(parsed)) {
                 value.set(parsed);

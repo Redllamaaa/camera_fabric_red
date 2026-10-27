@@ -33,6 +33,10 @@ repositories {
         name = "Jared's Maven"
         url = "https://maven.blamejared.com"
     }
+    maven {
+        name = "Modrinth Maven"
+        url = "https://api.modrinth.com/maven"
+    }
 }
 
 dependencies {
@@ -45,6 +49,10 @@ dependencies {
     // dependency configurations instead of Loom's remapped mod* variants.
     compileOnly("mezz.jei:jei-26.3-fabric-api:31.17.0.94")
     runtimeOnly("mezz.jei:jei-26.3-fabric:31.17.0.94")
+
+    // Jade is an optional integration; compile against its API without making
+    // the mod a required runtime dependency.
+    compileOnly("maven.modrinth:jade:26.3.5+fabric")
 }
 
 processResources {

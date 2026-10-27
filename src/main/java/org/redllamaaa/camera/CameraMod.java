@@ -2,6 +2,7 @@ package org.redllamaaa.camera;
 
 import com.mojang.serialization.Codec;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityDataRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
@@ -10,7 +11,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.syncher.EntityDataSerializer;
-import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.ItemTags;
@@ -36,12 +36,14 @@ import org.redllamaaa.camera.items.ImageItem;
 import org.redllamaaa.camera.net.ConfigNetworking;
 import org.redllamaaa.camera.net.PacketManager;
 import org.redllamaaa.camera.net.MessageResizeFrame;
+import org.redllamaaa.camera.net.MessageAlbumPage;
 import org.redllamaaa.camera.net.MessageDisableCameraMode;
 import org.redllamaaa.camera.net.MessagePartialImage;
 import org.redllamaaa.camera.net.MessageRequestImage;
 import org.redllamaaa.camera.net.MessageRequestUploadCustomImage;
 import org.redllamaaa.camera.net.MessageSetShader;
 import org.redllamaaa.camera.net.MessageTakeBook;
+import org.redllamaaa.camera.net.MessageTakeImage;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -50,6 +52,7 @@ import java.util.function.Function;
 public class CameraMod implements ModInitializer {
 
     public static final String MODID = "camera_fabric";
+    public static final String CONTENT_NAMESPACE = "camera";
     public static final Logger LOGGER = LogManager.getLogger(MODID);
 
     public static PacketManager PACKET_MANAGER;
@@ -121,20 +124,21 @@ public class CameraMod implements ModInitializer {
             .forValueType(ByteBufCodecs.optional(UUIDUtil.STREAM_CODEC));
 
     static {
-        EntityDataSerializers.registerSerializer(UUID_ENTITY_DATA_SERIALIZER);
+        FabricEntityDataRegistry.register(id("uuid"), UUID_ENTITY_DATA_SERIALIZER);
     }
 
     // ---------------------------------------------------------------------
     // Tags
     // ---------------------------------------------------------------------
 
-    public static final TagKey<Item> IMAGE_PAPER = ItemTags.create(id("image_paper"));
+    public static final TagKey<Item> IMAGE_PAPER = TagKey.create(Registries.ITEM, id("image_paper"));
 
     // ---------------------------------------------------------------------
     // Config
     // ---------------------------------------------------------------------
 
     public static final ServerConfig SERVER_CONFIG = new ServerConfig();
+    public static final ClientConfig CLIENT_CONFIG = new ClientConfig();
 
     @Override
     public void onInitialize() {
@@ -143,6 +147,7 @@ public class CameraMod implements ModInitializer {
         ModSounds.init();
 
         SERVER_CONFIG.load();
+        CreativeTabEvents.register();
         ConfigNetworking.register();
 
         registerPayloads();
@@ -156,6 +161,8 @@ public class CameraMod implements ModInitializer {
         MessageDisableCameraMode.register();
         MessageResizeFrame.register();
         MessageTakeBook.register();
+        MessageAlbumPage.register();
+        MessageTakeImage.registerType();
         // TODO: replaces RegisterPayloadHandlersEvent + CommonRegistry.registerMessage.
         // For each message, register its payload type + codec on the correct side(s), e.g.:
         //   PayloadTypeRegistry.playC2S().register(MessageTakeImage.TYPE, MessageTakeImage.STREAM_CODEC);
@@ -173,7 +180,7 @@ public class CameraMod implements ModInitializer {
     // ---------------------------------------------------------------------
 
     public static Identifier id(String path) {
-        return Identifier.fromNamespaceAndPath(MODID, path);
+        return Identifier.fromNamespaceAndPath(CONTENT_NAMESPACE, path);
     }
 
     private static <T extends Item> T registerItem(String name, Function<Item.Properties, T> factory) {

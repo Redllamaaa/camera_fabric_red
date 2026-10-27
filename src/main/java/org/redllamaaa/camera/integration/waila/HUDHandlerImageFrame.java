@@ -17,7 +17,7 @@ public class HUDHandlerImageFrame implements IEntityComponentProvider {
 
     public static final HUDHandlerImageFrame INSTANCE = new HUDHandlerImageFrame();
 
-    private static final Identifier UID = Identifier.fromNamespaceAndPath(CameraMod.MODID, "image_frame");
+    private static final Identifier UID = CameraMod.id("image_frame");
 
     @Override
     public void appendTooltip(ITooltip iTooltip, EntityAccessor entityAccessor, IPluginConfig iPluginConfig) {

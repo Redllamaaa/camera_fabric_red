@@ -21,7 +21,7 @@ public class AlbumContainer extends AbstractContainerMenu {
     }
 
     public AlbumContainer(int id, Container inventory, ContainerData intArray) {
-        super(CameraMod.ALBUM_CONTAINER.get(), id);
+        super(CameraMod.ALBUM_CONTAINER, id);
         checkContainerSize(inventory, 1);
         checkContainerDataCount(intArray, 1);
         this.inventory = inventory;

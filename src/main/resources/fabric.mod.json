@@ -25,11 +25,7 @@
     ]
   },
   "mixins": [
-    "camera_fabric.mixins.json",
-    {
-      "config": "camera_fabric.client.mixins.json",
-      "environment": "client"
-    }
+    "camera_fabric.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",

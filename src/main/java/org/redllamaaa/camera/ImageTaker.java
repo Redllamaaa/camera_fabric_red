@@ -2,19 +2,19 @@ package org.redllamaaa.camera;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderFrameEvent;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 import java.util.UUID;
 
-@EventBusSubscriber(modid = CameraMod.MODID, value = Dist.CLIENT)
 public class ImageTaker {
 
     private static UUID pendingImage;
     private static int delay;
     private static boolean hide;
+
+    public static void register() {
+        ClientTickEvents.END_CLIENT_TICK.register(ImageTaker::onClientTick);
+    }
 
     public static boolean isTakingImage() {
         return pendingImage != null;
@@ -36,8 +36,7 @@ public class ImageTaker {
         mc.gui.setScreen(null);
     }
 
-    @SubscribeEvent
-    public static void onRenderTickEnd(RenderFrameEvent.Pre event) {
+    private static void onClientTick(Minecraft mc) {
         if (pendingImage == null) {
             return;
         }
@@ -49,7 +48,6 @@ public class ImageTaker {
         UUID id = pendingImage;
         pendingImage = null;
 
-        Minecraft mc = Minecraft.getInstance();
         Screenshot.takeScreenshot(mc.gameRenderer.mainRenderTarget(), image -> {
             if (mc.gui.hud.isHidden() != hide) {
                 mc.gui.hud.toggle();

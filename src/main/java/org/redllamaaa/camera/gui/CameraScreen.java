@@ -24,10 +24,7 @@ import java.util.UUID;
 
 public class CameraScreen extends ScreenBase<AbstractContainerMenu> {
 
-    private static final Identifier CAMERA_TEXTURE = Identifier.fromNamespaceAndPath(
-            CameraMod.MODID,
-            "textures/gui/camera.png"
-    );
+    private static final Identifier CAMERA_TEXTURE = CameraMod.id("textures/gui/camera.png");
 
     private static final int PADDING = 10;
     private static final int BUTTON_WIDTH = 70;
@@ -100,7 +97,7 @@ public class CameraScreen extends ScreenBase<AbstractContainerMenu> {
                 BUTTON_HEIGHT
         ).build());
 
-        if (CameraMod.SERVER_CONFIG.allowImageUpload()) {
+        if (CameraMod.SERVER_CONFIG.allowImageUpload.get()) {
             upload = addRenderableWidget(Button.builder(
                     Component.translatable("button.camera.upload"),
                     button -> ImageTools.chooseImage(file -> {
@@ -117,7 +114,7 @@ public class CameraScreen extends ScreenBase<AbstractContainerMenu> {
                             e.printStackTrace();
                         }
 
-                        Minecraft.getInstance().setScreen(null);
+                        Minecraft.getInstance().gui.setScreen(null);
                     })
             ).bounds(
                     leftPos + imageWidth / 2 - BUTTON_WIDTH / 2,

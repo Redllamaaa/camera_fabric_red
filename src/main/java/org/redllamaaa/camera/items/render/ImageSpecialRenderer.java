@@ -15,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 
 import org.joml.Vector3fc;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 
 public class ImageSpecialRenderer implements SpecialModelRenderer<ImageEntityRenderState.ImageState> {

@@ -15,7 +15,7 @@ import org.redllamaaa.camera.CameraMod;
 public record MessageDisableCameraMode() implements CustomPacketPayload {
 
     public static final Type<MessageDisableCameraMode> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "disable_camera_mode")
+            CameraMod.id("disable_camera_mode")
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MessageDisableCameraMode> CODEC =

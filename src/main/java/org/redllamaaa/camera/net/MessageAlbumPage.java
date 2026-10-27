@@ -1,58 +1,44 @@
 package org.redllamaaa.camera.net;
 
-import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.camera.gui.AlbumContainer;
-import org.redllamaaa.corelib.net.Message;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.redllamaaa.camera.CameraMod;
+import org.redllamaaa.camera.gui.AlbumContainer;
 
-public class MessageAlbumPage implements Message<MessageAlbumPage> {
+public record MessageAlbumPage(int page) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<MessageAlbumPage> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(CameraMod.MODID, "album_page"));
+    public static final Type<MessageAlbumPage> TYPE = new Type<>(
+            CameraMod.id("album_page")
+    );
 
-    private int page;
-
-    public MessageAlbumPage() {
-
-    }
-
-    public MessageAlbumPage(int page) {
-        this.page = page;
-    }
-
-    @Override
-    public PacketFlow getExecutingSide() {
-        return PacketFlow.SERVERBOUND;
-    }
-
-    @Override
-    public void executeServerSide(IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer sender)) {
-            return;
-        }
-        if (sender.containerMenu instanceof AlbumContainer container) {
-            container.setPage(page);
-        }
-    }
-
-    @Override
-    public MessageAlbumPage fromBytes(RegistryFriendlyByteBuf buf) {
-        page = buf.readInt();
-        return this;
-    }
-
-    @Override
-    public void toBytes(RegistryFriendlyByteBuf buf) {
-        buf.writeInt(page);
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, MessageAlbumPage> CODEC =
+            StreamCodec.composite(
+                    ByteBufCodecs.VAR_INT,
+                    MessageAlbumPage::page,
+                    MessageAlbumPage::new
+            );
 
     @Override
     public Type<MessageAlbumPage> type() {
         return TYPE;
     }
 
+    public static void register() {
+        PayloadTypeRegistry.serverboundPlay().register(TYPE, CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(TYPE, (payload, context) ->
+                context.server().execute(() -> {
+                    ServerPlayer sender = context.player();
+                    if (sender.containerMenu instanceof AlbumContainer container) {
+                        container.setPage(payload.page());
+                    }
+                })
+        );
+    }
 }

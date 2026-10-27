@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permissions;
 import org.redllamaaa.camera.CameraMod;
 
 public final class ConfigNetworking {
@@ -28,7 +29,7 @@ public final class ConfigNetworking {
                 (payload, context) -> {
                     ServerPlayer player = context.player();
 
-                    if (!player.hasPermissions(2)) {
+                    if (!player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)) {
                         player.sendSystemMessage(Component.literal(
                                 "You do not have permission to change camera settings."
                         ));
@@ -65,7 +66,8 @@ public final class ConfigNetworking {
                 dispatcher.register(
                         Commands.literal("camera")
                                 .then(Commands.literal("config")
-                                        .requires(source -> source.hasPermission(2))
+                                        .requires(source -> source.permissions()
+                                                .hasPermission(Permissions.COMMANDS_GAMEMASTER))
                                         .executes(context -> {
                                             ServerPlayer player = context.getSource().getPlayerOrException();
                                             ServerPlayNetworking.send(player, createOpenPayload());

@@ -20,7 +20,7 @@ public record MessageResizeFrame(UUID uuid, Direction direction, boolean larger)
         implements CustomPacketPayload {
 
     public static final Type<MessageResizeFrame> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "resize_frame")
+            CameraMod.id("resize_frame")
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MessageResizeFrame> CODEC =
@@ -57,7 +57,7 @@ public record MessageResizeFrame(UUID uuid, Direction direction, boolean larger)
         ServerPlayNetworking.registerGlobalReceiver(TYPE, (payload, context) -> {
             ServerPlayer sender = context.player();
 
-            if (!sender.getAbilities().mayBuild()) {
+            if (!sender.getAbilities().mayBuild) {
                 return;
             }
 

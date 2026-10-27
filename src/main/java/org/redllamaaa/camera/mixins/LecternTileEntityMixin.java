@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 @Mixin(LecternBlockEntity.class)
 public abstract class LecternTileEntityMixin extends BlockEntity {
@@ -71,7 +71,7 @@ public abstract class LecternTileEntityMixin extends BlockEntity {
         book = resolveBook(stack, player);
         page = 0;
         if (level != null) {
-            pageCount = CameraMod.ALBUM.get().getImages(book).size();
+            pageCount = CameraMod.ALBUM.getImages(book).size();
         } else {
             pageCount = 0;
         }
@@ -91,7 +91,7 @@ public abstract class LecternTileEntityMixin extends BlockEntity {
         if (!(book.getItem() instanceof AlbumItem)) {
             return;
         }
-        pageCount = CameraMod.ALBUM.get().getImages(book).size();
+        pageCount = CameraMod.ALBUM.getImages(book).size();
     }
 
     @Shadow

@@ -6,8 +6,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -19,6 +17,7 @@ import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.EntityHitResult;
 import org.redllamaaa.camera.CameraMod;
 import org.redllamaaa.camera.TextureCache;
@@ -28,18 +27,10 @@ import java.util.UUID;
 
 public class ImageRenderer extends EntityRenderer<ImageEntity, ImageEntityRenderState> {
 
-    private static final Identifier DEFAULT_IMAGE = Identifier.fromNamespaceAndPath(
-            CameraMod.MODID, "textures/images/default_image.png"
-    );
-    private static final Identifier EMPTY_IMAGE = Identifier.fromNamespaceAndPath(
-            CameraMod.MODID, "textures/images/empty_image.png"
-    );
-    private static final Identifier FRAME_SIDE = Identifier.fromNamespaceAndPath(
-            CameraMod.MODID, "textures/images/frame_side.png"
-    );
-    private static final Identifier FRAME_BACK = Identifier.fromNamespaceAndPath(
-            CameraMod.MODID, "textures/images/frame_back.png"
-    );
+    private static final Identifier DEFAULT_IMAGE = CameraMod.id("textures/images/default_image.png");
+    private static final Identifier EMPTY_IMAGE = CameraMod.id("textures/images/empty_image.png");
+    private static final Identifier FRAME_SIDE = CameraMod.id("textures/images/frame_side.png");
+    private static final Identifier FRAME_BACK = CameraMod.id("textures/images/frame_back.png");
 
     private static final float THICKNESS = 1F / 16F;
 
@@ -182,7 +173,7 @@ public class ImageRenderer extends EntityRenderer<ImageEntity, ImageEntityRender
         state.frameHeight = image.getFrameHeight();
         state.facing = image.getFacing();
         state.imageState = extractImageState(image.getImageUUID().orElse(null));
-        state.light = LevelRenderer.getLightColor(image.level(), image.getCenterPosition());
+        state.light = LightCoordsUtil.getLightCoords(image.level(), image.getCenterPosition());
         state.imageBoundingBox = image.getBoundingBox();
     }
 
@@ -253,17 +244,17 @@ public class ImageRenderer extends EntityRenderer<ImageEntity, ImageEntityRender
         switch (facing) {
             case NORTH -> {
                 poseStack.translate(1D, 0D, 1D);
-                poseStack.mulPose(Axis.YP.rotationDegrees(180F));
+                poseStack.rotateDegrees(Axis.YP, 180F);
             }
             case SOUTH -> {
             }
             case EAST -> {
                 poseStack.translate(0D, 0D, 1D);
-                poseStack.mulPose(Axis.YP.rotationDegrees(90F));
+                poseStack.rotateDegrees(Axis.YP, 90F);
             }
             case WEST -> {
                 poseStack.translate(1D, 0D, 0D);
-                poseStack.mulPose(Axis.YP.rotationDegrees(270F));
+                poseStack.rotateDegrees(Axis.YP, 270F);
             }
             default -> {
             }

@@ -1,7 +1,7 @@
 
 package org.redllamaaa.camera.net;
 
-import net.fabricmc.fabric.api.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,7 +18,7 @@ import java.util.UUID;
 public record MessageUploadCustomImage(UUID uuid) implements CustomPacketPayload {
 
     public static final Type<MessageUploadCustomImage> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "upload")
+            CameraMod.id("upload")
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MessageUploadCustomImage> CODEC =

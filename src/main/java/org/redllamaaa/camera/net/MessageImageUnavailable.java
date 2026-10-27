@@ -1,7 +1,7 @@
 
 package org.redllamaaa.camera.net;
 
-import net.fabricmc.fabric.api.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -16,7 +16,7 @@ import java.util.UUID;
 public record MessageImageUnavailable(UUID imgUUID) implements CustomPacketPayload {
 
     public static final Type<MessageImageUnavailable> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "image_unavailable")
+            CameraMod.id("image_unavailable")
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MessageImageUnavailable> CODEC =

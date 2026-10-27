@@ -24,10 +24,7 @@ import java.util.UUID;
 
 public class ResizeFrameScreen extends AbstractContainerScreen<AbstractContainerMenu> {
 
-    private static final Identifier CAMERA_TEXTURE = Identifier.fromNamespaceAndPath(
-            CameraMod.MODID,
-            "textures/gui/resize_frame.png"
-    );
+    private static final Identifier CAMERA_TEXTURE = CameraMod.id("textures/gui/resize_frame.png");
 
     private static final int PADDING = 10;
     private static final int BUTTON_HEIGHT = 20;
@@ -48,7 +45,7 @@ public class ResizeFrameScreen extends AbstractContainerScreen<AbstractContainer
         );
 
         this.uuid = uuid;
-        this.visibility = (float) CameraMod.CLIENT_CONFIG.resizeGuiOpacity;
+        this.visibility = CameraMod.CLIENT_CONFIG.resizeGuiOpacity.get();
     }
 
     @Override
@@ -102,7 +99,7 @@ public class ResizeFrameScreen extends AbstractContainerScreen<AbstractContainer
                         visibility = 1F;
                     }
 
-                    CameraMod.CLIENT_CONFIG.resizeGuiOpacity = visibility;
+                    CameraMod.CLIENT_CONFIG.resizeGuiOpacity.set(visibility);
                     CameraMod.CLIENT_CONFIG.save();
                 }
         ).bounds(

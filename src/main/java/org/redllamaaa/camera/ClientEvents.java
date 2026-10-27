@@ -2,8 +2,9 @@
 package org.redllamaaa.camera;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.VanillaHudElements;
+import net.fabricmc.fabric.api.event.client.player.ClientHotbarScrollEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -17,11 +18,11 @@ import org.redllamaaa.camera.items.CameraItem;
 public class ClientEvents {
 
     private static final Identifier VIEWFINDER =
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "textures/gui/viewfinder_overlay.png");
+            CameraMod.id("textures/gui/viewfinder_overlay.png");
     private static final Identifier ZOOM =
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "textures/gui/zoom.png");
+            CameraMod.id("textures/gui/zoom.png");
     private static final Identifier HUD_ID =
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "camera_overlay");
+            CameraMod.id("camera_overlay");
 
     public static final float MAX_FOV = 90F;
     public static final float MIN_FOV = 5F;
@@ -29,9 +30,18 @@ public class ClientEvents {
     private static final Minecraft mc = Minecraft.getInstance();
 
     private static boolean inCameraMode;
-    private static float fov;
+    private static float fov = MAX_FOV;
 
     public static void register() {
+        ClientHotbarScrollEvents.ALLOW.register((inventory, currentSlot, newSlot, xOffset, yOffset) -> {
+            if (yOffset == 0D || getActiveCamera().isEmpty()) {
+                return true;
+            }
+
+            adjustZoom(yOffset);
+            return false;
+        });
+
         HudElementRegistry.attachElementBefore(
                 VanillaHudElements.CHAT,
                 HUD_ID,
@@ -73,7 +83,7 @@ public class ClientEvents {
     private static void renderOverlay(GuiGraphicsExtractor graphics, net.minecraft.client.DeltaTracker deltaTracker) {
         inCameraMode = isInCameraMode();
 
-        if (!inCameraMode || mc.player == null || mc.options.hideGui) {
+        if (!inCameraMode || mc.player == null || mc.gui.hud.isHidden()) {
             return;
         }
 
@@ -165,7 +175,7 @@ public class ClientEvents {
     }
 
     public static void adjustZoom(double scrollDelta) {
-        if (scrollDelta == 0D || !inCameraMode) {
+        if (scrollDelta == 0D || getActiveCamera().isEmpty()) {
             return;
         }
 
@@ -178,6 +188,13 @@ public class ClientEvents {
 
     public static float getFOV() {
         return fov;
+    }
+
+    public static float applyCameraZoom(float vanillaFov) {
+        if (getActiveCamera().isEmpty() && !ImageTaker.isTakingImage()) {
+            return vanillaFov;
+        }
+        return vanillaFov * fov / MAX_FOV;
     }
 
     public static void setFOV(float value) {

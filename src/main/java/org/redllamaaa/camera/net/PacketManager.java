@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.UUID;
 
 public class PacketManager {
@@ -154,24 +155,33 @@ public class PacketManager {
         }
     }
 
-    public synchronized boolean canTakeImage(UUID playerId) {
-        long now = System.currentTimeMillis();
-        long cooldown = CameraMod.SERVER_CONFIG.imageCooldown.get();
+    public synchronized boolean isImageOnCooldown(UUID playerId) {
+        long now = System.nanoTime();
+        cleanupExpiredUploads(System.currentTimeMillis());
+        long cooldown = TimeUnit.MILLISECONDS.toNanos(
+                CameraMod.SERVER_CONFIG.imageCooldown.get()
+        );
 
         Long lastTaken = cooldowns.get(playerId);
 
-        if (lastTaken != null && now - lastTaken < cooldown) {
+        if (lastTaken == null || now - lastTaken >= cooldown) {
             return false;
         }
 
+        return true;
+    }
+
+    public synchronized void recordImageTaken(UUID playerId) {
+        long now = System.nanoTime();
+        long cooldown = TimeUnit.MILLISECONDS.toNanos(
+                CameraMod.SERVER_CONFIG.imageCooldown.get()
+        );
         cooldowns.put(playerId, now);
 
         if (cooldowns.size() > 1024) {
             cooldowns.entrySet().removeIf(entry -> now - entry.getValue() > cooldown);
         }
-
-        cleanupExpiredUploads(now);
-        return true;
+        cleanupExpiredUploads(System.currentTimeMillis());
     }
 
     public synchronized void removePlayer(UUID playerId) {
@@ -215,7 +225,7 @@ public class PacketManager {
                         return;
                     }
 
-                    ItemStack stack = new ItemStack(CameraMod.IMAGE.get());
+                    ItemStack stack = new ItemStack(CameraMod.IMAGE);
                     ImageData imageData = ImageData.create(player, imageId);
                     imageData.addToImage(stack);
 

@@ -18,7 +18,7 @@ import java.util.UUID;
 public record MessageRequestImage(UUID imgUUID) implements CustomPacketPayload {
 
     public static final Type<MessageRequestImage> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath(CameraMod.MODID, "request_image")
+            CameraMod.id("request_image")
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, MessageRequestImage> CODEC =

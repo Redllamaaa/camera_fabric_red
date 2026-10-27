@@ -13,23 +13,49 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.IExtendableCraftingRecipeCategory;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
+import mezz.jei.api.gui.handlers.IGlobalGuiHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.Identifier;
+
+import java.util.List;
 
 @JeiPlugin
 public class JEIPlugin implements IModPlugin {
 
     @Override
     public Identifier getPluginUid() {
-        return Identifier.fromNamespaceAndPath(CameraMod.MODID, "camera");
+        return CameraMod.id("camera");
     }
 
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
-        registration.addGuiScreenHandler(ImageScreen.class, NoJEIGuiProperties::new);
-        registration.addGuiScreenHandler(AlbumScreen.class, NoJEIGuiProperties::new);
-        registration.addGuiScreenHandler(LecternAlbumScreen.class, NoJEIGuiProperties::new);
-        registration.addGuiScreenHandler(ResizeFrameScreen.class, NoJEIGuiProperties::new);
-        registration.addGuiScreenHandler(CameraScreen.class, NoJEIGuiProperties::new);
+        registration.addGuiScreenHandler(ImageScreen.class, screen -> null);
+        registration.addGuiScreenHandler(AlbumScreen.class, screen -> null);
+        registration.addGuiScreenHandler(LecternAlbumScreen.class, screen -> null);
+        registration.addGuiScreenHandler(ResizeFrameScreen.class, screen -> null);
+        registration.addGuiScreenHandler(CameraScreen.class, screen -> null);
+
+        registration.addGlobalGuiHandler(new IGlobalGuiHandler() {
+            @Override
+            public java.util.Collection<Rect2i> getGuiExtraAreas() {
+                var screen = Minecraft.getInstance().gui.screen();
+                if (screen instanceof ImageScreen
+                        || screen instanceof AlbumScreen
+                        || screen instanceof LecternAlbumScreen
+                        || screen instanceof ResizeFrameScreen
+                        || screen instanceof CameraScreen) {
+                    var window = Minecraft.getInstance().getWindow();
+                    return List.of(new Rect2i(
+                            0,
+                            0,
+                            window.getGuiScaledWidth(),
+                            window.getGuiScaledHeight()
+                    ));
+                }
+                return List.of();
+            }
+        });
     }
 
     @Override

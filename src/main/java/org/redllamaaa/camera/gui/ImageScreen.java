@@ -18,7 +18,7 @@ import java.util.UUID;
 
 public class ImageScreen extends AbstractContainerScreen<AbstractContainerMenu> {
 
-    public static final Identifier DEFAULT_IMAGE = Identifier.fromNamespaceAndPath(CameraMod.MODID, "textures/images/default_image.png");
+    public static final Identifier DEFAULT_IMAGE = CameraMod.id("textures/images/default_image.png");
 
     @Nullable
     private UUID imageID;
