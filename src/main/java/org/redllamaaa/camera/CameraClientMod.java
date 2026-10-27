@@ -53,6 +53,7 @@ public class CameraClientMod implements ClientModInitializer {
         KEY_NEXT = KeyMappingHelper.registerKeyMapping(
                 new KeyMapping(
                         "key.camera.next_image",
+                        InputConstants.Type.KEYBOARD,
                         InputConstants.KEY_DOWN,
                         KeyMapping.Category.MISC
                 )
@@ -61,6 +62,7 @@ public class CameraClientMod implements ClientModInitializer {
         KEY_PREVIOUS = KeyMappingHelper.registerKeyMapping(
                 new KeyMapping(
                         "key.camera.previous_image",
+                        InputConstants.Type.KEYBOARD,
                         InputConstants.KEY_UP,
                         KeyMapping.Category.MISC
                 )

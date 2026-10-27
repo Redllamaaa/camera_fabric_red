@@ -37,7 +37,7 @@ public class ClientEvents {
     public static void register() {
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             ItemStack activeCamera = getActiveCamera();
-            if (client.player != null && client.screen == null && !activeCamera.isEmpty()
+            if (client.player != null && client.gui.screen() == null && !activeCamera.isEmpty()
                     && client.options.keyAttack.consumeClick()) {
                 CameraMod.CAMERA.setActive(activeCamera, false);
                 ClientPlayNetworking.send(new MessageDisableCameraMode());
