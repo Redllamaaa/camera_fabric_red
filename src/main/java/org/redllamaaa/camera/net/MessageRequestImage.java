@@ -1,66 +1,56 @@
+
 package org.redllamaaa.camera.net;
 
-import org.redllamaaa.camera.ImageTools;
-import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.corelib.net.Message;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.redllamaaa.camera.CameraMod;
+import org.redllamaaa.camera.ImageTools;
 
 import java.io.IOException;
 import java.util.UUID;
 
-public class MessageRequestImage implements Message<MessageRequestImage> {
+public record MessageRequestImage(UUID imgUUID) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<MessageRequestImage> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(CameraMod.MODID, "request_image"));
+    public static final Type<MessageRequestImage> TYPE = new Type<>(
+            Identifier.fromNamespaceAndPath(CameraMod.MODID, "request_image")
+    );
 
-    private UUID imgUUID;
-
-    public MessageRequestImage() {
-
-    }
-
-    public MessageRequestImage(UUID imgUUID) {
-        this.imgUUID = imgUUID;
-    }
-
-    @Override
-    public PacketFlow getExecutingSide() {
-        return PacketFlow.SERVERBOUND;
-    }
-
-    @Override
-    public void executeServerSide(IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer sender)) {
-            return;
-        }
-        try {
-            byte[] data = ImageTools.toBytes(CameraMod.PACKET_MANAGER.getExistingImage(sender, imgUUID));
-            context.reply(new MessageImage(imgUUID, data));
-        } catch (IOException e) {
-            //TODO Properly log an error
-            e.printStackTrace();
-            context.reply(new MessageImageUnavailable(imgUUID));
-        }
-    }
-
-    @Override
-    public MessageRequestImage fromBytes(RegistryFriendlyByteBuf buf) {
-        imgUUID = buf.readUUID();
-        return this;
-    }
-
-    @Override
-    public void toBytes(RegistryFriendlyByteBuf buf) {
-        buf.writeUUID(imgUUID);
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, MessageRequestImage> CODEC =
+            StreamCodec.composite(
+                    UUIDUtil.STREAM_CODEC,
+                    MessageRequestImage::imgUUID,
+                    MessageRequestImage::new
+            );
 
     @Override
     public Type<MessageRequestImage> type() {
         return TYPE;
     }
 
+    public static void register() {
+        PayloadTypeRegistry.serverboundPlay().register(TYPE, CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(TYPE, (payload, context) -> {
+            ServerPlayer sender = context.player();
+
+            try {
+                byte[] data = ImageTools.toBytes(
+                        CameraMod.PACKET_MANAGER.getExistingImage(sender, payload.imgUUID())
+                );
+
+                context.responseSender().sendPacket(new MessageImage(payload.imgUUID(), data));
+            } catch (IOException | IllegalArgumentException e) {
+                CameraMod.LOGGER.error("Failed to retrieve image {}", payload.imgUUID(), e);
+                context.responseSender().sendPacket(
+                        new MessageImageUnavailable(payload.imgUUID())
+                );
+            }
+        });
+    }
 }

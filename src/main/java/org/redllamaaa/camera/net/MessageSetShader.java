@@ -1,62 +1,49 @@
+
 package org.redllamaaa.camera.net;
 
-import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.corelib.net.Message;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.redllamaaa.camera.CameraMod;
 
-public class MessageSetShader implements Message<MessageSetShader> {
+public record MessageSetShader(String shader) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<MessageSetShader> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(CameraMod.MODID, "set_shader"));
+    public static final Type<MessageSetShader> TYPE = new Type<>(
+            Identifier.fromNamespaceAndPath(CameraMod.MODID, "set_shader")
+    );
 
-    private String shader;
-
-    public MessageSetShader() {
-
-    }
-
-    public MessageSetShader(String shader) {
-        this.shader = shader;
-    }
-
-    @Override
-    public PacketFlow getExecutingSide() {
-        return PacketFlow.SERVERBOUND;
-    }
-
-    @Override
-    public void executeServerSide(IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer sender)) {
-            return;
-        }
-        for (InteractionHand hand : InteractionHand.values()) {
-            ItemStack stack = sender.getItemInHand(hand);
-            if (stack.getItem().equals(CameraMod.CAMERA.get())) {
-                stack.set(CameraMod.SHADER_DATA_COMPONENT, shader);
-            }
-        }
-    }
-
-    @Override
-    public MessageSetShader fromBytes(RegistryFriendlyByteBuf buf) {
-        shader = buf.readUtf(128);
-        return this;
-    }
-
-    @Override
-    public void toBytes(RegistryFriendlyByteBuf buf) {
-        buf.writeUtf(shader);
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, MessageSetShader> CODEC =
+            StreamCodec.composite(
+                    ByteBufCodecs.stringUtf8(128),
+                    MessageSetShader::shader,
+                    MessageSetShader::new
+            );
 
     @Override
     public Type<MessageSetShader> type() {
         return TYPE;
     }
 
+    public static void register() {
+        PayloadTypeRegistry.serverboundPlay().register(TYPE, CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(TYPE, (payload, context) -> {
+            ServerPlayer sender = context.player();
+
+            for (InteractionHand hand : InteractionHand.values()) {
+                ItemStack stack = sender.getItemInHand(hand);
+
+                if (stack.is(CameraMod.CAMERA)) {
+                    stack.set(CameraMod.SHADER_DATA_COMPONENT, payload.shader());
+                }
+            }
+        });
+    }
 }

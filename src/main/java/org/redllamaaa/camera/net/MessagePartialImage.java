@@ -1,65 +1,48 @@
+
 package org.redllamaaa.camera.net;
 
-import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.corelib.net.Message;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.redllamaaa.camera.CameraMod;
 
 import java.util.UUID;
 
-public class MessagePartialImage implements Message<MessagePartialImage> {
+public record MessagePartialImage(UUID imgUUID, int offset, int length, byte[] bytes)
+        implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<MessagePartialImage> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(CameraMod.MODID, "partial_image"));
+    private static final int MAX_CHUNK_SIZE = 1_000_000;
 
-    private UUID imgUUID;
-    private int offset;
-    private int length;
-    private byte[] bytes;
+    public static final Type<MessagePartialImage> TYPE = new Type<>(
+            Identifier.fromNamespaceAndPath(CameraMod.MODID, "partial_image")
+    );
 
-    public MessagePartialImage() {
+    public static final StreamCodec<RegistryFriendlyByteBuf, MessagePartialImage> CODEC =
+            StreamCodec.of(
+                    (buf, payload) -> {
+                        buf.writeUUID(payload.imgUUID());
+                        buf.writeInt(payload.offset());
+                        buf.writeInt(payload.length());
+                        buf.writeByteArray(payload.bytes());
+                    },
+                    buf -> {
+                        UUID imgUUID = buf.readUUID();
+                        int offset = buf.readInt();
+                        int length = buf.readInt();
+                        byte[] bytes = buf.readByteArray(MAX_CHUNK_SIZE);
 
-    }
+                        return new MessagePartialImage(imgUUID, offset, length, bytes);
+                    }
+            );
 
-    public MessagePartialImage(UUID imgUUID, int offset, int length, byte[] bytes) {
-        this.imgUUID = imgUUID;
-        this.offset = offset;
-        this.length = length;
-        this.bytes = bytes;
-    }
-
-    @Override
-    public PacketFlow getExecutingSide() {
-        return PacketFlow.SERVERBOUND;
-    }
-
-    @Override
-    public void executeServerSide(IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer sender)) {
-            return;
+    public MessagePartialImage {
+        if (offset < 0 || length < 0 || length != bytes.length || bytes.length > MAX_CHUNK_SIZE) {
+            throw new IllegalArgumentException("Invalid partial image chunk");
         }
-        CameraMod.PACKET_MANAGER.addBytes(sender, imgUUID, offset, length, bytes);
-    }
-
-    @Override
-    public MessagePartialImage fromBytes(RegistryFriendlyByteBuf buf) {
-        imgUUID = buf.readUUID();
-        offset = buf.readInt();
-        length = buf.readInt();
-        bytes = buf.readByteArray();
-        return this;
-    }
-
-    @Override
-    public void toBytes(RegistryFriendlyByteBuf buf) {
-        buf.writeUUID(imgUUID);
-        buf.writeInt(offset);
-        buf.writeInt(length);
-
-        buf.writeByteArray(bytes);
     }
 
     @Override
@@ -67,4 +50,19 @@ public class MessagePartialImage implements Message<MessagePartialImage> {
         return TYPE;
     }
 
+    public static void register() {
+        PayloadTypeRegistry.serverboundPlay().register(TYPE, CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(TYPE, (payload, context) -> {
+            ServerPlayer sender = context.player();
+
+            CameraMod.PACKET_MANAGER.addBytes(
+                    sender,
+                    payload.imgUUID(),
+                    payload.offset(),
+                    payload.length(),
+                    payload.bytes()
+            );
+        });
+    }
 }

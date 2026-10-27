@@ -1,50 +1,39 @@
+
 package org.redllamaaa.camera.net;
 
-import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.camera.gui.AlbumContainer;
-import org.redllamaaa.corelib.net.Message;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.redllamaaa.camera.CameraMod;
+import org.redllamaaa.camera.gui.AlbumContainer;
 
-public class MessageTakeBook implements Message<MessageTakeBook> {
+public record MessageTakeBook() implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<MessageTakeBook> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(CameraMod.MODID, "take_book"));
+    public static final Type<MessageTakeBook> TYPE = new Type<>(
+            Identifier.fromNamespaceAndPath(CameraMod.MODID, "take_book")
+    );
 
-    public MessageTakeBook() {
-
-    }
-
-    @Override
-    public PacketFlow getExecutingSide() {
-        return PacketFlow.SERVERBOUND;
-    }
-
-    @Override
-    public void executeServerSide(IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer sender)) {
-            return;
-        }
-        if (sender.containerMenu instanceof AlbumContainer container) {
-            container.takeBook(sender);
-        }
-    }
-
-    @Override
-    public MessageTakeBook fromBytes(RegistryFriendlyByteBuf buf) {
-        return this;
-    }
-
-    @Override
-    public void toBytes(RegistryFriendlyByteBuf buf) {
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, MessageTakeBook> CODEC =
+            StreamCodec.unit(new MessageTakeBook());
 
     @Override
     public Type<MessageTakeBook> type() {
         return TYPE;
     }
 
+    public static void register() {
+        PayloadTypeRegistry.serverboundPlay().register(TYPE, CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(TYPE, (payload, context) -> {
+            ServerPlayer sender = context.player();
+
+            if (sender.containerMenu instanceof AlbumContainer container) {
+                container.takeBook(sender);
+            }
+        });
+    }
 }

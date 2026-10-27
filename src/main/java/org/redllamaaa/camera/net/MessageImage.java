@@ -1,66 +1,54 @@
+
 package org.redllamaaa.camera.net;
 
-import org.redllamaaa.camera.ImageTools;
-import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.camera.TextureCache;
-import org.redllamaaa.corelib.net.Message;
+import io.netty.handler.codec.DecoderException;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.redllamaaa.camera.CameraMod;
+import org.redllamaaa.camera.ImageTools;
+import org.redllamaaa.camera.TextureCache;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.UUID;
 
-public class MessageImage implements Message<MessageImage> {
+public record MessageImage(UUID uuid, byte[] image) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<MessageImage> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(CameraMod.MODID, "image"));
+    private static final int MAX_IMAGE_SIZE = 1_000_000;
 
-    private UUID uuid;
-    private byte[] image;
+    public static final Type<MessageImage> TYPE = new Type<>(
+            Identifier.fromNamespaceAndPath(CameraMod.MODID, "image")
+    );
 
-    public MessageImage() {
+    public static final StreamCodec<RegistryFriendlyByteBuf, MessageImage> CODEC =
+            StreamCodec.of(
+                    (buf, payload) -> {
+                        if (payload.image().length > MAX_IMAGE_SIZE) {
+                            throw new DecoderException("Image too large: " + payload.image().length);
+                        }
 
-    }
+                        buf.writeUUID(payload.uuid());
+                        buf.writeByteArray(payload.image());
+                    },
+                    buf -> {
+                        UUID uuid = buf.readUUID();
+                        byte[] image = buf.readByteArray(MAX_IMAGE_SIZE);
 
-    public MessageImage(UUID uuid, byte[] image) throws IOException {
-        this.uuid = uuid;
-        this.image = image;
-        if (image.length > 1_000_000) {
-            throw new IOException("Image too large: " + image.length + " bytes (max 1.000.000)");
+                        return new MessageImage(uuid, image);
+                    }
+            );
+
+    public MessageImage {
+        if (image.length > MAX_IMAGE_SIZE) {
+            throw new IllegalArgumentException(
+                    "Image too large: " + image.length + " bytes (max " + MAX_IMAGE_SIZE + ")"
+            );
         }
-    }
-
-    @Override
-    public PacketFlow getExecutingSide() {
-        return PacketFlow.CLIENTBOUND;
-    }
-
-    @Override
-    public void executeClientSide(IPayloadContext context) {
-        try {
-            BufferedImage img = ImageTools.fromBytes(image);
-            Minecraft.getInstance().submitAsync(() -> TextureCache.instance().addImage(uuid, img));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public MessageImage fromBytes(RegistryFriendlyByteBuf buf) {
-        uuid = buf.readUUID();
-        image = buf.readByteArray();
-        return this;
-    }
-
-    @Override
-    public void toBytes(RegistryFriendlyByteBuf buf) {
-        buf.writeUUID(uuid);
-
-        buf.writeByteArray(image);
     }
 
     @Override
@@ -68,4 +56,19 @@ public class MessageImage implements Message<MessageImage> {
         return TYPE;
     }
 
+    public static void register() {
+        PayloadTypeRegistry.clientboundPlay().register(TYPE, CODEC);
+
+        ClientPlayNetworking.registerGlobalReceiver(TYPE, (payload, context) -> {
+            try {
+                BufferedImage img = ImageTools.fromBytes(payload.image());
+
+                Minecraft.getInstance().submitAsync(
+                        () -> TextureCache.instance().addImage(payload.uuid(), img)
+                );
+            } catch (IOException e) {
+                CameraMod.LOGGER.error("Failed to decode received image {}", payload.uuid(), e);
+            }
+        });
+    }
 }

@@ -1,54 +1,41 @@
+
 package org.redllamaaa.camera.net;
 
-import org.redllamaaa.camera.ImageTaker;
-import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.corelib.net.Message;
+import net.fabricmc.fabric.api.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.redllamaaa.camera.CameraMod;
+import org.redllamaaa.camera.ImageTaker;
 
 import java.util.UUID;
 
-public class MessageTakeImage implements Message<MessageTakeImage> {
+public record MessageTakeImage(UUID uuid) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<MessageTakeImage> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(CameraMod.MODID, "take_image"));
+    public static final Type<MessageTakeImage> TYPE = new Type<>(
+            Identifier.fromNamespaceAndPath(CameraMod.MODID, "take_image")
+    );
 
-    private UUID uuid;
-
-    public MessageTakeImage() {
-
-    }
-
-    public MessageTakeImage(UUID uuid) {
-        this.uuid = uuid;
-    }
-
-    @Override
-    public PacketFlow getExecutingSide() {
-        return PacketFlow.CLIENTBOUND;
-    }
-
-    @Override
-    public void executeClientSide(IPayloadContext context) {
-        ImageTaker.takeScreenshot(uuid);
-    }
-
-    @Override
-    public MessageTakeImage fromBytes(RegistryFriendlyByteBuf buf) {
-        uuid = buf.readUUID();
-        return this;
-    }
-
-    @Override
-    public void toBytes(RegistryFriendlyByteBuf buf) {
-        buf.writeUUID(uuid);
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, MessageTakeImage> CODEC =
+            StreamCodec.composite(
+                    UUIDUtil.STREAM_CODEC,
+                    MessageTakeImage::uuid,
+                    MessageTakeImage::new
+            );
 
     @Override
     public Type<MessageTakeImage> type() {
         return TYPE;
     }
 
+    public static void register() {
+        PayloadTypeRegistry.clientboundPlay().register(TYPE, CODEC);
+
+        ClientPlayNetworking.registerGlobalReceiver(TYPE, (payload, context) ->
+                ImageTaker.takeScreenshot(payload.uuid())
+        );
+    }
 }
