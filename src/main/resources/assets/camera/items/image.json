@@ -1,0 +1,9 @@
+{
+    "model": {
+        "type": "minecraft:special",
+        "base": "camera:item/image",
+        "model": {
+            "type": "camera:image"
+        }
+    }
+}

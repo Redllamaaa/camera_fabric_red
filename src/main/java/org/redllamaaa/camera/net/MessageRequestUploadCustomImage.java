@@ -1,0 +1,67 @@
+package org.redllamaaa.camera.net;
+
+import org.redllamaaa.camera.CameraMod;
+import org.redllamaaa.camera.items.CameraItem;
+import org.redllamaaa.corelib.net.Message;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.util.UUID;
+
+public class MessageRequestUploadCustomImage implements Message<MessageRequestUploadCustomImage> {
+
+    public static final CustomPacketPayload.Type<MessageRequestUploadCustomImage> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(CameraMod.MODID, "request_upload"));
+
+    private UUID uuid;
+
+    public MessageRequestUploadCustomImage() {
+
+    }
+
+    public MessageRequestUploadCustomImage(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    @Override
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
+    }
+
+    @Override
+    public void executeServerSide(IPayloadContext context) {
+        if (!(context.player() instanceof ServerPlayer sender)) {
+            return;
+        }
+        if (CameraMod.PACKET_MANAGER.canTakeImage(sender.getUUID())) {
+            if (CameraItem.consumePaper(sender)) {
+                context.reply(new MessageUploadCustomImage(uuid));
+            } else {
+                sender.sendOverlayMessage(Component.translatable("message.no_consumable"));
+            }
+        } else {
+            sender.sendOverlayMessage(Component.translatable("message.image_cooldown"));
+        }
+    }
+
+    @Override
+    public MessageRequestUploadCustomImage fromBytes(RegistryFriendlyByteBuf buf) {
+        uuid = buf.readUUID();
+        return this;
+    }
+
+    @Override
+    public void toBytes(RegistryFriendlyByteBuf buf) {
+        buf.writeUUID(uuid);
+    }
+
+    @Override
+    public Type<MessageRequestUploadCustomImage> type() {
+        return TYPE;
+    }
+
+}

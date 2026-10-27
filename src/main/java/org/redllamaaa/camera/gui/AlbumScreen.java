@@ -1,0 +1,105 @@
+package org.redllamaaa.camera.gui;
+
+import com.mojang.blaze3d.platform.InputConstants;
+import org.redllamaaa.camera.CameraClientMod;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.player.Inventory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+public class AlbumScreen extends AbstractContainerScreen<AlbumContainer> {
+
+    protected int index;
+    protected List<UUID> images;
+
+    public AlbumScreen(AlbumContainer screenContainer, Inventory inv, Component titleIn, List<UUID> images) {
+        super(screenContainer, inv, titleIn);
+        this.images = images;
+    }
+
+    public AlbumScreen(AlbumContainer screenContainer, Inventory inv, Component titleIn) {
+        this(screenContainer, inv, titleIn, new ArrayList<>());
+    }
+
+    public AlbumScreen(List<UUID> images) {
+        this(new AlbumContainer(-1), Minecraft.getInstance().player.getInventory(), Component.translatable("gui.album.title"), images);
+    }
+
+    @Override
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+
+    }
+
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        extractBlurredBackground(guiGraphics);
+
+        if (images.isEmpty()) {
+            return;
+        }
+        UUID uuid = images.get(index);
+        ImageScreen.drawImage(guiGraphics, width, height, uuid);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double deltaX, double deltaY) {
+        if (deltaY < 0D) {
+            next();
+        } else {
+            previous();
+        }
+        return true;
+    }
+
+    protected void next() {
+        setIndex(index + 1);
+    }
+
+    protected void previous() {
+        setIndex(index - 1);
+    }
+
+    protected void setIndex(int i) {
+        if (index == i) {
+            return;
+        }
+        index = i;
+        if (index >= images.size()) {
+            index = 0;
+        } else if (index < 0) {
+            index = images.size() - 1;
+        }
+        playPageTurnSound();
+    }
+
+    protected void playPageTurnSound() {
+        minecraft.level.playLocalSound(minecraft.player.getX(), minecraft.player.getY(), minecraft.player.getZ(), SoundEvents.BOOK_PAGE_TURN, SoundSource.MASTER, 1F, minecraft.level.getRandom().nextFloat() * 0.1F + 0.9F, false);
+    }
+
+    private boolean wasNextDown;
+    private boolean wasPreviousDown;
+
+    @Override
+    public void containerTick() {
+        super.containerTick();
+        boolean isNextDown = InputConstants.isKeyDown(CameraClientMod.KEY_NEXT.getKey().getValue());
+        boolean isPreviousDown = InputConstants.isKeyDown(CameraClientMod.KEY_PREVIOUS.getKey().getValue());
+        if (wasNextDown != (wasNextDown = isNextDown) && !isNextDown) {
+            next();
+        } else if (wasPreviousDown != (wasPreviousDown = isPreviousDown) && !isPreviousDown) {
+            previous();
+        }
+    }
+
+    @Override
+    protected void extractLabels(GuiGraphicsExtractor graphics, int xm, int ym) {
+
+    }
+}

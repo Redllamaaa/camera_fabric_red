@@ -1,0 +1,5 @@
+{
+  "type": "camera:image_cloning",
+  "image": "camera:image",
+  "paper": "#camera:image_paper"
+}

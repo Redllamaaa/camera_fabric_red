@@ -1,0 +1,43 @@
+
+{
+  "schemaVersion": 1,
+  "id": "camera_fabric",
+  "version": "${version}",
+  "name": "Camera Mod (Fabric)",
+  "description": "Fabric port of Camera Mod by henkelmax. This mod adds a working camera.",
+  "authors": [
+    "Max Henkel (original mod)",
+    "redllamaaa (Fabric port)"
+  ],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/camera_fabric/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "org.redllamaaa.camera.CameraMod"
+    ],
+    "client": [
+      "org.redllamaaa.camera.CameraClientMod"
+    ],
+    "fabric-datagen": [
+      "org.redllamaaa.camera.CameraDataGenerator"
+    ]
+  },
+  "mixins": [
+    "camera_fabric.mixins.json",
+    {
+      "config": "camera_fabric.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  },
+  "suggests": {
+    "jei": "*",
+    "jade": "*"
+  }
+}

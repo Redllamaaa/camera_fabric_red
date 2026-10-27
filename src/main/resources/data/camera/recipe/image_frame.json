@@ -1,0 +1,17 @@
+{
+  "type": "crafting_shaped",
+  "pattern": [
+    "SFS",
+    "SLS",
+    "SSS"
+  ],
+  "key": {
+    "S": "#c:rods/wooden",
+    "F": "#c:strings",
+    "L": "#c:leathers"
+  },
+  "result": {
+    "id": "camera:image_frame",
+    "count": 1
+  }
+}

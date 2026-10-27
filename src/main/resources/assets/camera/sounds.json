@@ -1,0 +1,11 @@
+{
+  "take_image": {
+    "category": "master",
+    "subtitle": "sound.camera.take_image",
+    "sounds": [
+      {
+        "name": "camera:take_image"
+      }
+    ]
+  }
+}
