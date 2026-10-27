@@ -3,6 +3,7 @@ package org.redllamaaa.camera.gui;
 import org.redllamaaa.camera.ClientImageUploadManager;
 import org.redllamaaa.camera.ImageTools;
 import org.redllamaaa.camera.CameraMod;
+import org.redllamaaa.camera.CameraClientMod;
 import org.redllamaaa.camera.Shaders;
 import org.redllamaaa.camera.net.MessageRequestUploadCustomImage;
 import org.redllamaaa.camera.net.MessageSetShader;
@@ -97,7 +98,7 @@ public class CameraScreen extends ScreenBase<AbstractContainerMenu> {
                 BUTTON_HEIGHT
         ).build());
 
-        if (CameraMod.SERVER_CONFIG.allowImageUpload.get()) {
+        if (CameraClientMod.serverAllowsImageUpload) {
             upload = addRenderableWidget(Button.builder(
                     Component.translatable("button.camera.upload"),
                     button -> ImageTools.chooseImage(file -> {

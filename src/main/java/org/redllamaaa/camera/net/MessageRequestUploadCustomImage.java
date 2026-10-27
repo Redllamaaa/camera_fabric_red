@@ -39,15 +39,20 @@ public record MessageRequestUploadCustomImage(UUID uuid) implements CustomPacket
         ServerPlayNetworking.registerGlobalReceiver(TYPE, (payload, context) -> {
             ServerPlayer sender = context.player();
 
-            if (CameraMod.PACKET_MANAGER.isImageOnCooldown(sender.getUUID())) {
+            if (!CameraMod.SERVER_CONFIG.allowImageUpload.get()) {
+                sender.sendOverlayMessage(Component.translatable("message.upload_disabled"));
+            } else if (CameraMod.PACKET_MANAGER.isImageOnCooldown(sender.getUUID())) {
                 sender.sendOverlayMessage(Component.translatable("message.image_cooldown"));
             } else {
-                if (CameraItem.consumePaper(sender)) {
+                if (!CameraMod.PACKET_MANAGER.authorizeUpload(sender, payload.uuid())) {
+                    sender.sendOverlayMessage(Component.translatable("message.image_upload_busy"));
+                } else if (CameraItem.consumePaper(sender)) {
                     CameraMod.PACKET_MANAGER.recordImageTaken(sender.getUUID());
                     context.responseSender().sendPacket(
                             new MessageUploadCustomImage(payload.uuid())
                     );
                 } else {
+                    CameraMod.PACKET_MANAGER.cancelAuthorizedUpload(sender, payload.uuid());
                     sender.sendOverlayMessage(Component.translatable("message.no_consumable"));
                 }
             }

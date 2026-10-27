@@ -9,6 +9,20 @@ public final class ConfigSyncPayload {
     private ConfigSyncPayload() {
     }
 
+    public record Settings(boolean allowImageUpload) implements CustomPacketPayload {
+        public static final Type<Settings> TYPE = new Type<>(CameraMod.id("settings_sync"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, Settings> CODEC =
+                StreamCodec.of(
+                        (buf, value) -> buf.writeBoolean(value.allowImageUpload()),
+                        buf -> new Settings(buf.readBoolean())
+                );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
     public record Open(
             int imageCooldown,
             int cameraConsumeItemAmount,

@@ -6,6 +6,8 @@
   "item.camera.album": "Album",
   "message.no_consumable": "No or not enough material in inventory",
   "message.image_cooldown": "Camera is on cooldown",
+  "message.upload_disabled": "Custom image uploads are disabled on this server",
+  "message.image_upload_busy": "Another image upload is already in progress",
   "message.upload_error": "Image upload error: %s",
   "tooltip.image_time": "Taken on %s",
   "tooltip.image_owner": "Taken by %s",

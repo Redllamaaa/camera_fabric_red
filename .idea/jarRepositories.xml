@@ -51,5 +51,20 @@
       <option name="name" value="LoomLocalMinecraft" />
       <option name="url" value="file:$PROJECT_DIR$/.gradle/loom-cache/minecraftMaven/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="Xander" />
+      <option name="name" value="Xander" />
+      <option name="url" value="https://maven.isxander.dev/releases" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="Jared's Maven" />
+      <option name="name" value="Jared's Maven" />
+      <option name="url" value="https://maven.blamejared.com" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="Modrinth Maven" />
+      <option name="name" value="Modrinth Maven" />
+      <option name="url" value="https://api.modrinth.com/maven" />
+    </remote-repository>
   </component>
 </project>

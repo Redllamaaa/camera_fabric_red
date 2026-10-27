@@ -32,6 +32,7 @@ public class PacketManager {
     private final Map<UUID, UploadBuffer> clientDataMap = new HashMap<>();
     private final Map<UUID, UUID> uploadOwners = new HashMap<>();
     private final Map<UUID, Long> uploadStarted = new HashMap<>();
+    private final Map<UUID, PendingUpload> pendingUploads = new HashMap<>();
 
     private final Map<UUID, BufferedImage> imageCache =
             new LinkedHashMap<>(32, 0.75F, true) {
@@ -42,6 +43,40 @@ public class PacketManager {
             };
 
     private final Map<UUID, Long> cooldowns = new HashMap<>();
+
+    public synchronized boolean authorizeUpload(ServerPlayer player, UUID imageId) {
+        if (player == null || imageId == null) {
+            return false;
+        }
+
+        long now = System.currentTimeMillis();
+        cleanupExpiredUploads(now);
+
+        if (clientDataMap.containsKey(imageId)
+                || pendingUploads.containsKey(imageId)
+                || pendingUploads.size() + clientDataMap.size() >= MAX_ACTIVE_UPLOADS) {
+            return false;
+        }
+
+        UUID playerId = player.getUUID();
+        if (countUploads(playerId) + countPendingUploads(playerId) >= MAX_UPLOADS_PER_PLAYER) {
+            return false;
+        }
+
+        pendingUploads.put(imageId, new PendingUpload(playerId, now));
+        return true;
+    }
+
+    public synchronized void cancelAuthorizedUpload(ServerPlayer player, UUID imageId) {
+        if (player == null || imageId == null) {
+            return;
+        }
+
+        PendingUpload pending = pendingUploads.get(imageId);
+        if (pending != null && pending.owner().equals(player.getUUID())) {
+            pendingUploads.remove(imageId);
+        }
+    }
 
     public synchronized void addBytes(
             ServerPlayer player,
@@ -55,6 +90,17 @@ public class PacketManager {
         }
 
         int maxSize = CameraMod.SERVER_CONFIG.maxImageSize.get();
+        UUID playerId = player.getUUID();
+
+        UUID activeOwner = uploadOwners.get(imageId);
+        PendingUpload pendingUpload = pendingUploads.get(imageId);
+        if ((activeOwner != null && !activeOwner.equals(playerId))
+                || (activeOwner == null && pendingUpload != null
+                && !pendingUpload.owner().equals(playerId))) {
+            CameraMod.LOGGER.warn("Rejected image upload from a non-owner: {}",
+                    player.getGameProfile().name());
+            return;
+        }
 
         if (length <= 0 || length > maxSize || offset < 0
                 || offset > length || bytes.length > length - offset) {
@@ -63,10 +109,22 @@ public class PacketManager {
             return;
         }
 
-        UUID playerId = player.getUUID();
         UploadBuffer upload = clientDataMap.get(imageId);
 
         if (upload == null) {
+            PendingUpload pending = pendingUploads.get(imageId);
+            if (pending == null) {
+                CameraMod.LOGGER.warn("Rejected unauthorized image upload from {}",
+                        player.getGameProfile().name());
+                return;
+            }
+            if (System.currentTimeMillis() - pending.startedAt() > UPLOAD_TIMEOUT_MS) {
+                pendingUploads.remove(imageId);
+                CameraMod.LOGGER.warn("Rejected expired image upload from {}",
+                        player.getGameProfile().name());
+                return;
+            }
+
             if (clientDataMap.size() >= MAX_ACTIVE_UPLOADS
                     || countUploads(playerId) >= MAX_UPLOADS_PER_PLAYER) {
                 CameraMod.LOGGER.warn("Rejected image upload: too many active uploads for {}",
@@ -74,11 +132,12 @@ public class PacketManager {
                 return;
             }
 
+            pendingUploads.remove(imageId);
             upload = new UploadBuffer(length);
             clientDataMap.put(imageId, upload);
             uploadOwners.put(imageId, playerId);
             uploadStarted.put(imageId, System.currentTimeMillis());
-        } else if (!playerId.equals(uploadOwners.get(imageId)) || upload.data.length != length) {
+        } else if (upload.data.length != length) {
             clearUpload(imageId);
             CameraMod.LOGGER.warn("Rejected conflicting image upload from {}",
                     player.getGameProfile().name());
@@ -198,6 +257,8 @@ public class PacketManager {
                 iterator.remove();
             }
         }
+
+        pendingUploads.entrySet().removeIf(entry -> entry.getValue().owner().equals(playerId));
     }
 
     private void saveImageAndGiveItem(ServerPlayer player, UUID imageId, BufferedImage image) {
@@ -257,13 +318,28 @@ public class PacketManager {
         return count;
     }
 
+    private int countPendingUploads(UUID playerId) {
+        int count = 0;
+
+        for (PendingUpload pending : pendingUploads.values()) {
+            if (pending.owner().equals(playerId)) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
     private void clearUpload(UUID imageId) {
         clientDataMap.remove(imageId);
         uploadOwners.remove(imageId);
         uploadStarted.remove(imageId);
+        pendingUploads.remove(imageId);
     }
 
     private void cleanupExpiredUploads(long now) {
+        pendingUploads.entrySet().removeIf(entry -> now - entry.getValue().startedAt() > UPLOAD_TIMEOUT_MS);
+
         Iterator<Map.Entry<UUID, Long>> iterator = uploadStarted.entrySet().iterator();
 
         while (iterator.hasNext()) {
@@ -287,5 +363,8 @@ public class PacketManager {
             this.data = new byte[length];
             this.received = new BitSet(length);
         }
+    }
+
+    private record PendingUpload(UUID owner, long startedAt) {
     }
 }

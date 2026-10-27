@@ -4,6 +4,7 @@ import com.mojang.brigadier.Command;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,9 +20,17 @@ public final class ConfigNetworking {
                 ConfigSyncPayload.Open.TYPE,
                 ConfigSyncPayload.Open.CODEC
         );
+        PayloadTypeRegistry.clientboundPlay().register(
+                ConfigSyncPayload.Settings.TYPE,
+                ConfigSyncPayload.Settings.CODEC
+        );
         PayloadTypeRegistry.serverboundPlay().register(
                 ConfigSyncPayload.Update.TYPE,
                 ConfigSyncPayload.Update.CODEC
+        );
+
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+                ServerPlayNetworking.send(handler.player, createSettingsPayload())
         );
 
         ServerPlayNetworking.registerGlobalReceiver(
@@ -57,6 +66,14 @@ public final class ConfigNetworking {
 
                     config.save();
 
+                    ConfigSyncPayload.Settings settings = createSettingsPayload();
+                    var server = player.level().getServer();
+                    if (server != null) {
+                        for (ServerPlayer onlinePlayer : server.getPlayerList().getPlayers()) {
+                            ServerPlayNetworking.send(onlinePlayer, settings);
+                        }
+                    }
+
                     player.sendSystemMessage(Component.literal("Camera settings saved."));
                     ServerPlayNetworking.send(player, createOpenPayload());
                 }
@@ -91,5 +108,9 @@ public final class ConfigNetworking {
                 config.advancedImageData.get(),
                 config.advancedDataMaxEntities.get()
         );
+    }
+
+    private static ConfigSyncPayload.Settings createSettingsPayload() {
+        return new ConfigSyncPayload.Settings(CameraMod.SERVER_CONFIG.allowImageUpload.get());
     }
 }

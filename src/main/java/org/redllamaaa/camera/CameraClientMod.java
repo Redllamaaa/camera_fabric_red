@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class CameraClientMod implements ClientModInitializer {
+    public static boolean serverAllowsImageUpload = true;
 
     public static KeyMapping KEY_NEXT;
     public static KeyMapping KEY_PREVIOUS;
@@ -97,6 +98,12 @@ public class CameraClientMod implements ClientModInitializer {
                 ConfigSyncPayload.Open.TYPE,
                 (payload, context) -> context.client().execute(
                         () -> CameraConfigScreen.open(payload)
+                )
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+                ConfigSyncPayload.Settings.TYPE,
+                (payload, context) -> context.client().execute(
+                        () -> serverAllowsImageUpload = payload.allowImageUpload()
                 )
         );
     }

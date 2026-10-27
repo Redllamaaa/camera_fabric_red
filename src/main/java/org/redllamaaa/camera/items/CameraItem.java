@@ -56,7 +56,10 @@ public class CameraItem extends Item {
         } else if (CameraMod.PACKET_MANAGER.isImageOnCooldown(player.getUUID())) {
             player.sendOverlayMessage(Component.translatable("message.image_cooldown"));
         } else {
-            if (consumePaper(player)) {
+            UUID uuid = UUID.randomUUID();
+            if (!CameraMod.PACKET_MANAGER.authorizeUpload(serverPlayer, uuid)) {
+                player.sendOverlayMessage(Component.translatable("message.image_upload_busy"));
+            } else if (consumePaper(player)) {
                 CameraMod.PACKET_MANAGER.recordImageTaken(player.getUUID());
                 level.playSound(
                         null,
@@ -67,13 +70,11 @@ public class CameraItem extends Item {
                         1.0F
                 );
 
-                UUID uuid = UUID.randomUUID();
-
-                // Replace with your Fabric networking implementation.
                 MessageTakeImage.sendToPlayer(serverPlayer, uuid);
 
                 setActive(stack, false);
             } else {
+                CameraMod.PACKET_MANAGER.cancelAuthorizedUpload(serverPlayer, uuid);
                 player.sendOverlayMessage(Component.translatable("message.no_consumable"));
             }
         }
@@ -124,14 +125,6 @@ public class CameraItem extends Item {
 
     private static List<ItemStack> findPaper(Player player) {
         List<ItemStack> items = new ArrayList<>();
-
-        if (isPaper(player.getItemInHand(InteractionHand.MAIN_HAND))) {
-            items.add(player.getItemInHand(InteractionHand.MAIN_HAND));
-        }
-
-        if (isPaper(player.getItemInHand(InteractionHand.OFF_HAND))) {
-            items.add(player.getItemInHand(InteractionHand.OFF_HAND));
-        }
 
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack stack = player.getInventory().getItem(i);

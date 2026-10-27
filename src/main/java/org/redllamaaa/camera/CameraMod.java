@@ -106,6 +106,7 @@ public class CameraMod implements ModInitializer {
     public static final DataComponentType<Unit> ACTIVE_DATA_COMPONENT = Registry.register(
             BuiltInRegistries.DATA_COMPONENT_TYPE, id("active"),
             DataComponentType.<Unit>builder()
+                    .persistent(Codec.unit(Unit.INSTANCE))
                     .networkSynchronized(StreamCodec.unit(Unit.INSTANCE))
                     .build());
 
@@ -148,6 +149,7 @@ public class CameraMod implements ModInitializer {
 
         SERVER_CONFIG.load();
         CreativeTabEvents.register();
+        ServerEvents.register();
         ConfigNetworking.register();
 
         registerPayloads();
