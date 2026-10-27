@@ -35,6 +35,7 @@ import org.redllamaaa.camera.items.ImageFrameItem;
 import org.redllamaaa.camera.items.ImageItem;
 import org.redllamaaa.camera.net.ConfigNetworking;
 import org.redllamaaa.camera.net.PacketManager;
+import org.redllamaaa.camera.net.MessageResizeFrame;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -138,6 +139,7 @@ public class CameraMod implements ModInitializer {
         ConfigNetworking.register();
 
         registerPayloads();
+        MessageResizeFrame.register();
     }
 
     private static void registerPayloads() {

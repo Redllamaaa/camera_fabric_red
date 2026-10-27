@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/camera_fabric_red.iml" filepath="$PROJECT_DIR$/.idea/modules/camera_fabric_red.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/camera_fabric_red.main.iml" filepath="$PROJECT_DIR$/.idea/modules/camera_fabric_red.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/camera_fabric_red.test.iml" filepath="$PROJECT_DIR$/.idea/modules/camera_fabric_red.test.iml" />
     </modules>

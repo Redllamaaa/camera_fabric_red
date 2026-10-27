@@ -1,4 +1,4 @@
-package org.redllamaaa.util;
+package org.redllamaaa.util.codec;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
