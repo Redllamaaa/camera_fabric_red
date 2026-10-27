@@ -21,6 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import org.redllamaaa.camera.net.MessageImage;
 import org.redllamaaa.camera.net.MessageImageUnavailable;
 import org.redllamaaa.camera.net.MessageTakeImage;
+import org.redllamaaa.camera.net.MessageUploadCustomImage;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,6 +41,7 @@ public class CameraClientMod implements ClientModInitializer {
         MessageImage.register();
         MessageImageUnavailable.register();
         MessageTakeImage.register();
+        MessageUploadCustomImage.register();
 
         ClientEvents.register();
 

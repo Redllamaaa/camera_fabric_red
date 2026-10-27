@@ -1,62 +1,47 @@
+
 package org.redllamaaa.camera.net;
 
-import org.redllamaaa.camera.ClientImageUploadManager;
-import org.redllamaaa.camera.ImageProcessor;
-import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.util.net.Message;
+import net.fabricmc.fabric.api.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.redllamaaa.camera.CameraMod;
+import org.redllamaaa.camera.ClientImageUploadManager;
+import org.redllamaaa.camera.ImageProcessor;
 
 import java.awt.image.BufferedImage;
 import java.util.UUID;
 
-public class MessageUploadCustomImage implements Message<MessageUploadCustomImage> {
+public record MessageUploadCustomImage(UUID uuid) implements CustomPacketPayload {
 
-    public static final CustomPacketPayload.Type<MessageUploadCustomImage> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(CameraMod.MODID, "upload"));
+    public static final Type<MessageUploadCustomImage> TYPE = new Type<>(
+            Identifier.fromNamespaceAndPath(CameraMod.MODID, "upload")
+    );
 
-    private UUID uuid;
-
-    public MessageUploadCustomImage() {
-
-    }
-
-    public MessageUploadCustomImage(UUID uuid) {
-        this.uuid = uuid;
-    }
-
-    @Override
-    public PacketFlow getExecutingSide() {
-        return PacketFlow.CLIENTBOUND;
-    }
-
-    @Override
-    public void executeClientSide(IPayloadContext context) {
-        BufferedImage image = ClientImageUploadManager.getAndRemoveImage(uuid);
-
-        if (image == null) {
-            return;
-        }
-
-        ImageProcessor.sendScreenshotThreaded(uuid, image);
-    }
-
-    @Override
-    public MessageUploadCustomImage fromBytes(RegistryFriendlyByteBuf buf) {
-        uuid = buf.readUUID();
-        return this;
-    }
-
-    @Override
-    public void toBytes(RegistryFriendlyByteBuf buf) {
-        buf.writeUUID(uuid);
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, MessageUploadCustomImage> CODEC =
+            StreamCodec.composite(
+                    UUIDUtil.STREAM_CODEC,
+                    MessageUploadCustomImage::uuid,
+                    MessageUploadCustomImage::new
+            );
 
     @Override
     public Type<MessageUploadCustomImage> type() {
         return TYPE;
     }
 
+    public static void register() {
+        PayloadTypeRegistry.clientboundPlay().register(TYPE, CODEC);
+
+        ClientPlayNetworking.registerGlobalReceiver(TYPE, (payload, context) -> {
+            BufferedImage image = ClientImageUploadManager.getAndRemoveImage(payload.uuid());
+
+            if (image != null) {
+                ImageProcessor.sendScreenshotThreaded(payload.uuid(), image);
+            }
+        });
+    }
 }
