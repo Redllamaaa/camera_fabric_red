@@ -1,45 +1,154 @@
+
 package org.redllamaaa.camera;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.redllamaaa.util.config.ConfigBase;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import org.redllamaaa.util.config.ConfigValue;
+import net.fabricmc.loader.api.FabricLoader;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class ServerConfig extends ConfigBase {
 
-    public final ModConfigSpec.IntValue imageCooldown;
-    public final ModConfigSpec.IntValue cameraConsumeItemAmount;
-    public final ModConfigSpec.IntValue maxImageSize;
-    public final ModConfigSpec.DoubleValue imageCompression;
-    public final ModConfigSpec.BooleanValue allowImageUpload;
-    public final ModConfigSpec.BooleanValue frameOnlyOwnerModify;
-    public final ModConfigSpec.BooleanValue advancedImageData;
-    public final ModConfigSpec.IntValue advancedDataMaxEntities;
+    private static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting()
+            .create();
 
-    public ServerConfig(ModConfigSpec.Builder builder) {
-        super(builder);
-        imageCooldown = builder
-                .comment("The time in milliseconds the camera will be on cooldown after taking an image")
-                .defineInRange("camera.cooldown", 5000, 100, Integer.MAX_VALUE);
-        cameraConsumeItemAmount = builder
-                .comment("The amount of the item that is consumed when taking an image")
-                .defineInRange("camera.consumed_item.amount", 1, 1, Short.MAX_VALUE);
-        maxImageSize = builder
-                .comment("The maximum size of an image in bytes when transferred to the server", "Higher values mean more delay/lag between taking an image and getting it into your inventory")
-                .defineInRange("image.max_size", 200_000, 50_000, 1_000_000);
-        imageCompression = builder
-                .comment("The amount of jpeg compression applied to the image", "If the image exceeds the 'max_image_size', it will get compressed anyways")
-                .defineInRange("image.compression", 0.5D, 0.1D, 1D);
-        allowImageUpload = builder
-                .comment("If it is allowed to upload custom images")
-                .define("image.allow_upload", true);
-        frameOnlyOwnerModify = builder
-                .comment("If only the owner can modify or break the image frame")
-                .define("image_frame.only_owner_modify", false);
-        advancedImageData = builder
-                .comment("If the image items should store additional data", "This isn't used by the mod itself", "Only enable this if you know what you are doing")
-                .define("advanced_data.enable", false);
-        advancedDataMaxEntities = builder
-                .comment("The amount of entities that should be stored")
-                .defineInRange("advanced_data.max_entities", 16, 1, 128);
+    private final Path configPath = FabricLoader.getInstance()
+            .getConfigDir()
+            .resolve("camera_fabric_red.json");
+
+    public final ConfigValue<Integer> imageCooldown =
+            new ConfigValue<>(5000, value -> value >= 100);
+
+    public final ConfigValue<Integer> cameraConsumeItemAmount =
+            new ConfigValue<>(1, value -> value >= 1 && value <= Short.MAX_VALUE);
+
+    public final ConfigValue<Integer> maxImageSize =
+            new ConfigValue<>(200_000, value -> value >= 50_000 && value <= 1_000_000);
+
+    public final ConfigValue<Double> imageCompression =
+            new ConfigValue<>(0.5D, value -> value >= 0.1D && value <= 1.0D);
+
+    public final ConfigValue<Boolean> allowImageUpload =
+            new ConfigValue<>(true);
+
+    public final ConfigValue<Boolean> frameOnlyOwnerModify =
+            new ConfigValue<>(false);
+
+    public final ConfigValue<Boolean> advancedImageData =
+            new ConfigValue<>(false);
+
+    public final ConfigValue<Integer> advancedDataMaxEntities =
+            new ConfigValue<>(16, value -> value >= 1 && value <= 128);
+
+    public void load() {
+        if (!Files.exists(configPath)) {
+            save();
+            onLoad();
+            return;
+        }
+
+        try (var reader = Files.newBufferedReader(configPath)) {
+            JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+
+            read(json, "camera.cooldown", imageCooldown);
+            read(json, "camera.consumed_item.amount", cameraConsumeItemAmount);
+            read(json, "image.max_size", maxImageSize);
+            read(json, "image.compression", imageCompression);
+            read(json, "image.allow_upload", allowImageUpload);
+            read(json, "image_frame.only_owner_modify", frameOnlyOwnerModify);
+            read(json, "advanced_data.enable", advancedImageData);
+            read(json, "advanced_data.max_entities", advancedDataMaxEntities);
+
+            save();
+            onLoad();
+        } catch (IOException | IllegalStateException e) {
+            throw new IllegalStateException("Failed to load server config", e);
+        }
     }
 
+    public void save() {
+        JsonObject json = new JsonObject();
+
+        write(json, "camera.cooldown", imageCooldown);
+        write(json, "camera.consumed_item.amount", cameraConsumeItemAmount);
+        write(json, "image.max_size", maxImageSize);
+        write(json, "image.compression", imageCompression);
+        write(json, "image.allow_upload", allowImageUpload);
+        write(json, "image_frame.only_owner_modify", frameOnlyOwnerModify);
+        write(json, "advanced_data.enable", advancedImageData);
+        write(json, "advanced_data.max_entities", advancedDataMaxEntities);
+
+        try {
+            Files.createDirectories(configPath.getParent());
+            Files.writeString(configPath, GSON.toJson(json));
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to save server config", e);
+        }
+    }
+
+    private <T> void read(JsonObject json, String path, ConfigValue<T> value) {
+        JsonElement element = getElement(json, path);
+
+        if (element == null || element.isJsonNull()) {
+            return;
+        }
+
+        try {
+            T parsed = GSON.fromJson(element, value.getDefault().getClass());
+
+            if (value.isValid(parsed)) {
+                value.set(parsed);
+            }
+        } catch (RuntimeException ignored) {
+            value.reset();
+        }
+    }
+
+    private <T> void write(JsonObject json, String path, ConfigValue<T> value) {
+        setElement(json, path, GSON.toJsonTree(value.get()));
+    }
+
+    private JsonElement getElement(JsonObject json, String path) {
+        String[] parts = path.split("\\.");
+        JsonObject current = json;
+
+        for (int i = 0; i < parts.length - 1; i++) {
+            JsonElement element = current.get(parts[i]);
+
+            if (element == null || !element.isJsonObject()) {
+                return null;
+            }
+
+            current = element.getAsJsonObject();
+        }
+
+        return current.get(parts[parts.length - 1]);
+    }
+
+    private void setElement(JsonObject json, String path, JsonElement value) {
+        String[] parts = path.split("\\.");
+        JsonObject current = json;
+
+        for (int i = 0; i < parts.length - 1; i++) {
+            JsonElement element = current.get(parts[i]);
+
+            if (element == null || !element.isJsonObject()) {
+                JsonObject nested = new JsonObject();
+                current.add(parts[i], nested);
+                current = nested;
+            } else {
+                current = element.getAsJsonObject();
+            }
+        }
+
+        current.add(parts[parts.length - 1], value);
+    }
 }

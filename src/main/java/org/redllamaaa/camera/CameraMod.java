@@ -125,10 +125,7 @@ public class CameraMod implements ModInitializer {
     // Config
     // ---------------------------------------------------------------------
 
-    // TODO: CommonRegistry.registerConfig / ModConfig.Type are NeoForge/corelib specific.
-    // Replace with your Fabric config solution (Cloth Config, MidnightLib, a Fabric build of corelib, ...).
-    public static ServerConfig SERVER_CONFIG;
-    public static ClientConfig CLIENT_CONFIG;
+    public static final ServerConfig SERVER_CONFIG = new ServerConfig();
 
     @Override
     public void onInitialize() {
@@ -137,8 +134,8 @@ public class CameraMod implements ModInitializer {
 
         ModSounds.init();
 
-        // TODO: config registration (see above)
-        // TODO: creative tab -> ItemGroupEvents.modifyEntriesEvent(...) (port CreativeTabEvents)
+        SERVER_CONFIG.load();
+        
         registerPayloads();
     }
 
