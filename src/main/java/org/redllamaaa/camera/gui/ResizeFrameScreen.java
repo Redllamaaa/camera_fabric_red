@@ -3,7 +3,7 @@ package org.redllamaaa.camera.gui;
 import org.redllamaaa.camera.CameraMod;
 import org.redllamaaa.camera.entities.ImageEntity;
 import org.redllamaaa.camera.net.MessageResizeFrame;
-import org.redllamaaa.corelib.FontColorUtils;
+import org.redllamaaa.util.FontColorUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;

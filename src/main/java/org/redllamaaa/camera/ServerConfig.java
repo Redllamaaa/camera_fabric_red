@@ -1,6 +1,6 @@
 package org.redllamaaa.camera;
 
-import org.redllamaaa.corelib.config.ConfigBase;
+import org.redllamaaa.util.config.ConfigBase;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class ServerConfig extends ConfigBase {

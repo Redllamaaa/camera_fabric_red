@@ -1,7 +1,7 @@
 package org.redllamaaa.camera.gui;
 
 import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.corelib.inventory.ScreenBase;
+import org.redllamaaa.util.ScreenBase;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;

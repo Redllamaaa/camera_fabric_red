@@ -3,7 +3,7 @@ package org.redllamaaa.camera;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import org.redllamaaa.camera.items.ImageItem;
-import org.redllamaaa.corelib.codec.CodecUtils;
+import org.redllamaaa.util.CodecUtils;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;

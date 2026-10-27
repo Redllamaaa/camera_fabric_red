@@ -1,7 +1,7 @@
 package org.redllamaaa.camera.gui;
 
 import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.corelib.inventory.ContainerBase;
+import org.redllamaaa.util.ContainerBase;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 
