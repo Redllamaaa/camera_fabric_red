@@ -5,12 +5,9 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-
-import org.redllamaaa.camera.CameraMod;
-import org.redllamaaa.camera.TextureCache;
-
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightCoordsUtil;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -23,8 +20,10 @@ import net.minecraft.gizmos.Gizmos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.EntityHitResult;
+import org.redllamaaa.camera.CameraMod;
+import org.redllamaaa.camera.TextureCache;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public class ImageRenderer extends EntityRenderer<ImageEntity, ImageEntityRenderState> {
@@ -46,11 +45,11 @@ public class ImageRenderer extends EntityRenderer<ImageEntity, ImageEntityRender
 
     public static final UUID DEFAULT_IMAGE_UUID = new UUID(0L, 0L);
 
-    private static Minecraft mc;
+    private final Minecraft mc;
 
     public ImageRenderer(EntityRendererProvider.Context context) {
         super(context);
-        mc = Minecraft.getInstance();
+        this.mc = Minecraft.getInstance();
     }
 
     @Override
@@ -122,48 +121,48 @@ public class ImageRenderer extends EntityRenderer<ImageEntity, ImageEntityRender
         collector.submitCustomGeometry(
                 stack,
                 RenderTypes.text(resourceLocation),
-                (pose, vertexConsumer) -> {
-                    vertex(vertexConsumer, pose, ratioX, ratioY, THICKNESS, 0F, 1F, light, Direction.SOUTH);
-                    vertex(vertexConsumer, pose, width - ratioX, ratioY, THICKNESS, 1F, 1F, light, Direction.SOUTH);
-                    vertex(vertexConsumer, pose, width - ratioX, height - ratioY, THICKNESS, 1F, 0F, light, Direction.SOUTH);
-                    vertex(vertexConsumer, pose, ratioX, height - ratioY, THICKNESS, 0F, 0F, light, Direction.SOUTH);
+                (pose, consumer) -> {
+                    vertex(consumer, pose, ratioX, ratioY, THICKNESS, 0F, 1F, light, Direction.SOUTH);
+                    vertex(consumer, pose, width - ratioX, ratioY, THICKNESS, 1F, 1F, light, Direction.SOUTH);
+                    vertex(consumer, pose, width - ratioX, height - ratioY, THICKNESS, 1F, 0F, light, Direction.SOUTH);
+                    vertex(consumer, pose, ratioX, height - ratioY, THICKNESS, 0F, 0F, light, Direction.SOUTH);
                 }
         );
 
         collector.submitCustomGeometry(
                 stack,
                 RenderTypes.entityCutout(FRAME_SIDE),
-                (pose, vertexConsumer) -> {
-                    vertex(vertexConsumer, pose, ratioX, ratioY, 0F, 1F, ratioY, light, Direction.WEST);
-                    vertex(vertexConsumer, pose, ratioX, ratioY, THICKNESS, 1F - THICKNESS, ratioY, light, Direction.WEST);
-                    vertex(vertexConsumer, pose, ratioX, height - ratioY, THICKNESS, 1F - THICKNESS, 1F - ratioY, light, Direction.WEST);
-                    vertex(vertexConsumer, pose, ratioX, height - ratioY, 0F, 1F, 1F - ratioY, light, Direction.WEST);
+                (pose, consumer) -> {
+                    vertex(consumer, pose, ratioX, ratioY, 0F, 1F, ratioY, light, Direction.WEST);
+                    vertex(consumer, pose, ratioX, ratioY, THICKNESS, 1F - THICKNESS, ratioY, light, Direction.WEST);
+                    vertex(consumer, pose, ratioX, height - ratioY, THICKNESS, 1F - THICKNESS, 1F - ratioY, light, Direction.WEST);
+                    vertex(consumer, pose, ratioX, height - ratioY, 0F, 1F, 1F - ratioY, light, Direction.WEST);
 
-                    vertex(vertexConsumer, pose, width - ratioX, ratioY, 0F, 0F, ratioY, light, Direction.EAST);
-                    vertex(vertexConsumer, pose, width - ratioX, height - ratioY, 0F, 0F, 1F - ratioY, light, Direction.EAST);
-                    vertex(vertexConsumer, pose, width - ratioX, height - ratioY, THICKNESS, THICKNESS, 1F - ratioY, light, Direction.EAST);
-                    vertex(vertexConsumer, pose, width - ratioX, ratioY, THICKNESS, THICKNESS, ratioY, light, Direction.EAST);
+                    vertex(consumer, pose, width - ratioX, ratioY, 0F, 0F, ratioY, light, Direction.EAST);
+                    vertex(consumer, pose, width - ratioX, height - ratioY, 0F, 0F, 1F - ratioY, light, Direction.EAST);
+                    vertex(consumer, pose, width - ratioX, height - ratioY, THICKNESS, THICKNESS, 1F - ratioY, light, Direction.EAST);
+                    vertex(consumer, pose, width - ratioX, ratioY, THICKNESS, THICKNESS, ratioY, light, Direction.EAST);
 
-                    vertex(vertexConsumer, pose, ratioX, height - ratioY, 0F, ratioX, 1F, light, Direction.UP);
-                    vertex(vertexConsumer, pose, ratioX, height - ratioY, THICKNESS, ratioX, 1F - THICKNESS, light, Direction.UP);
-                    vertex(vertexConsumer, pose, width - ratioX, height - ratioY, THICKNESS, 1F - ratioX, 1F - THICKNESS, light, Direction.UP);
-                    vertex(vertexConsumer, pose, width - ratioX, height - ratioY, 0F, 1F - ratioX, 1F, light, Direction.UP);
+                    vertex(consumer, pose, ratioX, height - ratioY, 0F, ratioX, 1F, light, Direction.UP);
+                    vertex(consumer, pose, ratioX, height - ratioY, THICKNESS, ratioX, 1F - THICKNESS, light, Direction.UP);
+                    vertex(consumer, pose, width - ratioX, height - ratioY, THICKNESS, 1F - ratioX, 1F - THICKNESS, light, Direction.UP);
+                    vertex(consumer, pose, width - ratioX, height - ratioY, 0F, 1F - ratioX, 1F, light, Direction.UP);
 
-                    vertex(vertexConsumer, pose, ratioX, ratioY, 0F, ratioX, 0F, light, Direction.DOWN);
-                    vertex(vertexConsumer, pose, width - ratioX, ratioY, 0F, 1F - ratioX, 0F, light, Direction.DOWN);
-                    vertex(vertexConsumer, pose, width - ratioX, ratioY, THICKNESS, 1F - ratioX, THICKNESS, light, Direction.DOWN);
-                    vertex(vertexConsumer, pose, ratioX, ratioY, THICKNESS, ratioX, THICKNESS, light, Direction.DOWN);
+                    vertex(consumer, pose, ratioX, ratioY, 0F, ratioX, 0F, light, Direction.DOWN);
+                    vertex(consumer, pose, width - ratioX, ratioY, 0F, 1F - ratioX, 0F, light, Direction.DOWN);
+                    vertex(consumer, pose, width - ratioX, ratioY, THICKNESS, 1F - ratioX, THICKNESS, light, Direction.DOWN);
+                    vertex(consumer, pose, ratioX, ratioY, THICKNESS, ratioX, THICKNESS, light, Direction.DOWN);
                 }
         );
 
         collector.submitCustomGeometry(
                 stack,
                 RenderTypes.entityCutout(FRAME_BACK),
-                (pose, vertexConsumer) -> {
-                    vertex(vertexConsumer, pose, width - ratioX, ratioY, 0F, 1F - ratioX, ratioY, light, Direction.NORTH);
-                    vertex(vertexConsumer, pose, ratioX, ratioY, 0F, ratioX, ratioY, light, Direction.NORTH);
-                    vertex(vertexConsumer, pose, ratioX, height - ratioY, 0F, ratioX, 1F - ratioY, light, Direction.NORTH);
-                    vertex(vertexConsumer, pose, width - ratioX, height - ratioY, 0F, 1F - ratioX, 1F - ratioY, light, Direction.NORTH);
+                (pose, consumer) -> {
+                    vertex(consumer, pose, width - ratioX, ratioY, 0F, 1F - ratioX, ratioY, light, Direction.NORTH);
+                    vertex(consumer, pose, ratioX, ratioY, 0F, ratioX, ratioY, light, Direction.NORTH);
+                    vertex(consumer, pose, ratioX, height - ratioY, 0F, ratioX, 1F - ratioY, light, Direction.NORTH);
+                    vertex(consumer, pose, width - ratioX, height - ratioY, 0F, 1F - ratioX, 1F - ratioY, light, Direction.NORTH);
                 }
         );
 
@@ -183,7 +182,7 @@ public class ImageRenderer extends EntityRenderer<ImageEntity, ImageEntityRender
         state.frameHeight = image.getFrameHeight();
         state.facing = image.getFacing();
         state.imageState = extractImageState(image.getImageUUID().orElse(null));
-        state.light = LightCoordsUtil.getLightCoords(image.level(), image.getCenterPosition());
+        state.light = LevelRenderer.getLightColor(image.level(), image.getCenterPosition());
         state.imageBoundingBox = image.getBoundingBox();
     }
 
@@ -215,7 +214,7 @@ public class ImageRenderer extends EntityRenderer<ImageEntity, ImageEntityRender
     }
 
     private static void vertex(
-            VertexConsumer builder,
+            VertexConsumer consumer,
             PoseStack.Pose pose,
             float x,
             float y,
@@ -225,7 +224,7 @@ public class ImageRenderer extends EntityRenderer<ImageEntity, ImageEntityRender
             int light,
             Direction normal
     ) {
-        builder.addVertex(pose.pose(), x, y, z)
+        consumer.addVertex(pose.pose(), x, y, z)
                 .setColor(1F, 1F, 1F, 1F)
                 .setUv(u, v)
                 .setOverlay(OverlayTexture.NO_OVERLAY)
@@ -233,7 +232,7 @@ public class ImageRenderer extends EntityRenderer<ImageEntity, ImageEntityRender
                 .setNormal(pose, normal.getStepX(), normal.getStepY(), normal.getStepZ());
     }
 
-    private static void submitBoundingBox(ImageEntityRenderState state) {
+    private void submitBoundingBox(ImageEntityRenderState state) {
         if (!(mc.hitResult instanceof EntityHitResult entityHitResult)
                 || !entityHitResult.getEntity().getUUID().equals(state.imageEntityUUID)) {
             return;
@@ -254,17 +253,17 @@ public class ImageRenderer extends EntityRenderer<ImageEntity, ImageEntityRender
         switch (facing) {
             case NORTH -> {
                 poseStack.translate(1D, 0D, 1D);
-                poseStack.rotate(Axis.YP.rotationDegrees(180F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(180F));
             }
             case SOUTH -> {
             }
             case EAST -> {
                 poseStack.translate(0D, 0D, 1D);
-                poseStack.rotate(Axis.YP.rotationDegrees(90F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(90F));
             }
             case WEST -> {
                 poseStack.translate(1D, 0D, 0D);
-                poseStack.rotate(Axis.YP.rotationDegrees(270F));
+                poseStack.mulPose(Axis.YP.rotationDegrees(270F));
             }
             default -> {
             }
