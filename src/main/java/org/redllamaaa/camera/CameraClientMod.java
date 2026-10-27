@@ -18,6 +18,9 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.special.SpecialModelRenderers;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import org.redllamaaa.camera.net.MessageImage;
+import org.redllamaaa.camera.net.MessageImageUnavailable;
+import org.redllamaaa.camera.net.MessageTakeImage;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,6 +37,9 @@ public class CameraClientMod implements ClientModInitializer {
         registerRenderers();
         registerItemModels();
         registerScreens();
+        MessageImage.register();
+        MessageImageUnavailable.register();
+        MessageTakeImage.register();
 
         ClientEvents.register();
 
