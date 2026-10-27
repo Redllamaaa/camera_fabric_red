@@ -2,6 +2,7 @@
 package org.redllamaaa.camera;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.client.player.ClientHotbarScrollEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
@@ -14,6 +15,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.redllamaaa.camera.items.CameraItem;
+import org.redllamaaa.camera.net.MessageDisableCameraMode;
 
 public class ClientEvents {
 
@@ -33,6 +35,15 @@ public class ClientEvents {
     private static float fov = MAX_FOV;
 
     public static void register() {
+        ClientTickEvents.START_CLIENT_TICK.register(client -> {
+            ItemStack activeCamera = getActiveCamera();
+            if (client.player != null && client.screen == null && !activeCamera.isEmpty()
+                    && client.options.keyAttack.consumeClick()) {
+                CameraMod.CAMERA.setActive(activeCamera, false);
+                ClientPlayNetworking.send(new MessageDisableCameraMode());
+            }
+        });
+
         ClientHotbarScrollEvents.ALLOW.register((inventory, currentSlot, newSlot, xOffset, yOffset) -> {
             if (yOffset == 0D || getActiveCamera().isEmpty()) {
                 return true;
