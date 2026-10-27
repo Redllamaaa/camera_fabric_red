@@ -36,6 +36,12 @@ import org.redllamaaa.camera.items.ImageItem;
 import org.redllamaaa.camera.net.ConfigNetworking;
 import org.redllamaaa.camera.net.PacketManager;
 import org.redllamaaa.camera.net.MessageResizeFrame;
+import org.redllamaaa.camera.net.MessageDisableCameraMode;
+import org.redllamaaa.camera.net.MessagePartialImage;
+import org.redllamaaa.camera.net.MessageRequestImage;
+import org.redllamaaa.camera.net.MessageRequestUploadCustomImage;
+import org.redllamaaa.camera.net.MessageSetShader;
+import org.redllamaaa.camera.net.MessageTakeBook;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -133,16 +139,23 @@ public class CameraMod implements ModInitializer {
     @Override
     public void onInitialize() {
         PACKET_MANAGER = new PacketManager();
+
         ModSounds.init();
 
         SERVER_CONFIG.load();
         ConfigNetworking.register();
 
         registerPayloads();
-        MessageResizeFrame.register();
     }
 
     private static void registerPayloads() {
+        MessagePartialImage.register();
+        MessageRequestImage.register();
+        MessageRequestUploadCustomImage.register();
+        MessageSetShader.register();
+        MessageDisableCameraMode.register();
+        MessageResizeFrame.register();
+        MessageTakeBook.register();
         // TODO: replaces RegisterPayloadHandlersEvent + CommonRegistry.registerMessage.
         // For each message, register its payload type + codec on the correct side(s), e.g.:
         //   PayloadTypeRegistry.playC2S().register(MessageTakeImage.TYPE, MessageTakeImage.STREAM_CODEC);
